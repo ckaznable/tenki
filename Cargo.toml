@@ -13,6 +13,7 @@ tokio = { version = "1.35.1", features = ["macros", "process", "rt", "rt-multi-t
 serde = { version = "1.0", features = ["derive"] }
 futures = "0.3.30"
 rand = { version = "0.8.5", features = ["small_rng"] }
+tinyvec = "1.6.0"
 
 [profile.release]
 opt-level = "z"

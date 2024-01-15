@@ -1,3 +1,5 @@
+use std::{rc::Rc, cell::{Cell, RefCell, RefMut}, borrow::BorrowMut};
+
 use anyhow::Result;
 use crossterm::{
     cursor,
@@ -7,6 +9,7 @@ use crossterm::{
 };
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
+use tinyvec::ArrayVec;
 
 use crate::{tui::Tui, ui::ui};
 
@@ -19,8 +22,12 @@ pub enum DropSpeed {
     None,
 }
 
-pub type DropCell = (DropSpeed, DropSpeed, DropSpeed);
-pub type DropColumn = Vec<DropCell>;
+const DROP_TICK_FAST: u8 = 1;
+const DROP_TICK_NORMAL: u8 = 4;
+const DROP_TICK_SLOW: u8 = 6;
+
+pub type DropCell = ArrayVec<[DropSpeed; 3]>;
+pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
 pub struct State {
     pub buf: Vec<DropColumn>,
@@ -31,9 +38,9 @@ pub struct State {
 impl State {
     pub fn new(size: Rect) -> Self {
         let buf = Vec::with_capacity(size.width as usize)
-            .into_iter()
-            .map(|_: DropColumn| Vec::with_capacity(size.height as usize))
-            .collect();
+           .into_iter()
+           .map(|_: DropColumn| Rc::new(RefCell::new(Vec::with_capacity(size.height as usize))))
+           .collect::<Vec<_>>();
 
         State {
             buf,
@@ -59,16 +66,18 @@ impl State {
     pub fn tick(&mut self) {
         self.increase_ticks();
 
+        // each column
         for i in 0..self.buf.len() {
-            State::tick_drop(&mut self.buf[i]);
+            State::clean_latest_drop(&mut self.buf[i]);
+            State::tick_drop(&mut self.buf[i], self.ticks);
         }
-        
+
         self.tick_new_drop();
     }
 
     pub fn increase_ticks(&mut self) {
-        if self.ticks == u8::MAX {
-            self.ticks = 0
+        if self.ticks == 252 {
+            self.ticks = 1
         } else {
             self.ticks = self.ticks.saturating_add(1)
         }
@@ -80,16 +89,68 @@ impl State {
             .into_iter()
             .enumerate()
             .for_each(|(i, d)| {
-                self.buf[i][0] = State::merge_drop_state(self.buf[i][0], d);
+                self.buf
+                    .get_mut(i)
+                    .unwrap()
+                    .try_borrow_mut()
+                    .unwrap()
+                    .get_mut(i)
+                    .map(|cell| State::merge_drop_state(*cell, d));
             });
     }
 
-    fn tick_drop(column: &mut DropColumn) {
-        todo!()
+    fn tick_drop(col: &mut DropColumn, ticks: u8) {
+        let len = { col.borrow().len() };
+
+        for col_index in 0..len {
+            let dist = col.clone();
+            let dist = dist.borrow();
+            let Some(dist_state) = dist.get(len.saturating_sub(col_index + 1)) else {
+                continue;
+            };
+
+            let previous = col.clone();
+            let previous = previous.borrow();
+            let Some(previous) = previous.get(len.saturating_sub(col_index + 2)) else {
+                continue;
+            };
+
+            let Ok(mut column) = col.try_borrow_mut() else {
+                continue;
+            };
+
+            for p_index in 0..previous.len() {
+                let state = match previous.get(p_index) {
+                    Some(DropSpeed::Fast) => DropSpeed::Fast,
+                    Some(DropSpeed::Normal) if ticks % DROP_TICK_NORMAL == 0 => DropSpeed::Normal,
+                    Some(DropSpeed::Slow) if ticks % DROP_TICK_SLOW == 0 => DropSpeed::Slow,
+                    _ => continue
+                };
+
+                column[len.saturating_sub(p_index + 1)] = State::merge_drop_state(*dist_state, state);
+                column[len.saturating_sub(p_index + 2)] = State::remove_drop_state(*dist_state, state);
+            }
+        }
     }
 
-    fn merge_drop_state(cell: DropCell, d: DropSpeed) -> DropCell {
-        todo!()
+    fn clean_latest_drop(col: &mut DropColumn) {
+        let len = col.borrow().len();
+        if len > 0 {
+            let mut col = col.try_borrow_mut().unwrap();
+            if let Some(c) = col.get_mut(len - 1) {
+                c.clear()
+            };
+        }
+    }
+
+    #[inline]
+    fn merge_drop_state(mut cell: DropCell, d: DropSpeed) -> DropCell {
+        cell.push(d);
+        cell
+    }
+
+    fn remove_drop_state(cell: DropCell, d: DropSpeed) -> DropCell {
+        cell.into_iter().filter(|c| *c != d).collect()
     }
 
     #[inline]

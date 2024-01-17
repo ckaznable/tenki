@@ -2,6 +2,7 @@ mod app;
 mod tui;
 mod ui;
 mod util;
+mod widget;
 
 use anyhow::Result;
 use app::App;

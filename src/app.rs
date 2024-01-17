@@ -1,9 +1,9 @@
-use std::{rc::Rc, cell::{Cell, RefCell, RefMut}, borrow::BorrowMut};
+use std::{rc::Rc, cell::RefCell};
 
 use anyhow::Result;
 use crossterm::{
     cursor,
-    event::DisableMouseCapture,
+    event::{DisableMouseCapture, KeyEvent, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -11,7 +11,7 @@ use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
 use tinyvec::ArrayVec;
 
-use crate::{tui::Tui, ui::ui};
+use crate::{tui::{Tui, Event}, ui::ui};
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub enum DropSpeed {
@@ -22,7 +22,6 @@ pub enum DropSpeed {
     None,
 }
 
-const DROP_TICK_FAST: u8 = 1;
 const DROP_TICK_NORMAL: u8 = 4;
 const DROP_TICK_SLOW: u8 = 6;
 
@@ -31,16 +30,21 @@ pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
 pub struct State {
     pub buf: Vec<DropColumn>,
+    pub ticks: u8,
     rng: SmallRng,
-    ticks: u8,
 }
 
 impl State {
     pub fn new(size: Rect) -> Self {
-        let buf = Vec::with_capacity(size.width as usize)
-           .into_iter()
-           .map(|_: DropColumn| Rc::new(RefCell::new(Vec::with_capacity(size.height as usize))))
-           .collect::<Vec<_>>();
+        let mut buf = Vec::with_capacity(size.width as usize);
+        for _ in 0..size.width {
+            let mut column = Vec::with_capacity(size.height as usize);
+            for _ in 0..size.height {
+                column.push(ArrayVec::<[DropSpeed; 3]>::default());
+            }
+
+            buf.push(Rc::new(RefCell::new(column)));
+        }
 
         State {
             buf,
@@ -49,12 +53,24 @@ impl State {
         }
     }
 
-    pub fn gen_drop(&mut self) -> Vec<DropSpeed> {
+    pub fn tick(&mut self) {
+        self.increase_ticks();
+
+        // each column
+        for i in 0..self.buf.len() {
+            Self::clean_latest_drop(&mut self.buf[i]);
+            Self::tick_drop(&mut self.buf[i], self.ticks);
+        }
+
+        self.tick_new_drop();
+    }
+
+    fn gen_drop(&mut self) -> Vec<DropSpeed> {
         let mut line: Vec<DropSpeed> = Vec::with_capacity(self.buf.len());
         let rng_u64 = self.rng.next_u64();
-        for i in 0..64 {
+        for i in 0..64u64 {
             line.push(if rng_u64 & (1 << i) != 0 {
-                State::get_drop_speed(i)
+                Self::get_drop_speed(i)
             } else {
                 DropSpeed::None
             });
@@ -63,19 +79,7 @@ impl State {
         line
     }
 
-    pub fn tick(&mut self) {
-        self.increase_ticks();
-
-        // each column
-        for i in 0..self.buf.len() {
-            State::clean_latest_drop(&mut self.buf[i]);
-            State::tick_drop(&mut self.buf[i], self.ticks);
-        }
-
-        self.tick_new_drop();
-    }
-
-    pub fn increase_ticks(&mut self) {
+    fn increase_ticks(&mut self) {
         if self.ticks == 252 {
             self.ticks = 1
         } else {
@@ -85,17 +89,18 @@ impl State {
 
     /// generate new drop line
     fn tick_new_drop(&mut self) {
-        self.gen_drop()
+        let _ = self.gen_drop()
             .into_iter()
             .enumerate()
-            .for_each(|(i, d)| {
+            .filter_map(|(i, d)| {
                 self.buf
-                    .get_mut(i)
-                    .unwrap()
+                    .get_mut(i)?
                     .try_borrow_mut()
-                    .unwrap()
+                    .ok()?
                     .get_mut(i)
-                    .map(|cell| State::merge_drop_state(*cell, d));
+                    .map(|cell| Self::merge_drop_state(*cell, d));
+
+                Some(())
             });
     }
 
@@ -127,12 +132,13 @@ impl State {
                     _ => continue
                 };
 
-                column[len.saturating_sub(p_index + 1)] = State::merge_drop_state(*dist_state, state);
-                column[len.saturating_sub(p_index + 2)] = State::remove_drop_state(*dist_state, state);
+                column[len.saturating_sub(p_index + 1)] = Self::merge_drop_state(*dist_state, state);
+                column[len.saturating_sub(p_index + 2)] = Self::remove_drop_state(*dist_state, state);
             }
         }
     }
 
+    #[inline]
     fn clean_latest_drop(col: &mut DropColumn) {
         let len = col.borrow().len();
         if len > 0 {
@@ -145,16 +151,20 @@ impl State {
 
     #[inline]
     fn merge_drop_state(mut cell: DropCell, d: DropSpeed) -> DropCell {
-        cell.push(d);
+        if !cell.contains(&d) {
+            cell.push(d);
+        };
+
         cell
     }
 
+    #[inline]
     fn remove_drop_state(cell: DropCell, d: DropSpeed) -> DropCell {
         cell.into_iter().filter(|c| *c != d).collect()
     }
 
     #[inline]
-    fn get_drop_speed(num: i32) -> DropSpeed {
+    fn get_drop_speed(num: u64) -> DropSpeed {
         match num % 3 {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
@@ -168,6 +178,7 @@ pub struct App {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     tui: Tui,
     state: State,
+    should_quit: bool,
 }
 
 impl App {
@@ -185,18 +196,40 @@ impl App {
             terminal,
             state,
             tui: Tui::new()?,
+            should_quit: false,
         })
     }
 
     pub async fn run(&mut self) -> Result<()> {
+        use Event::*;
         self.tui.run();
 
         loop {
             if let Some(event) = self.tui.next().await {
-                todo!()
+                match event {
+                    Init => (),
+                    Quit => self.should_quit = true,
+                    Error => self.should_quit = true,
+                    Render => self.state.tick(),
+                    Key(key) => self.handle_keyboard(key),
+                    Timer => (),
+                    Resize(_, _) => (),
+                };
+            };
+
+            if self.should_quit {
+                break;
             }
 
             self.terminal.draw(|f| ui(f, &mut self.state))?;
+        };
+
+        Ok(())
+    }
+
+    fn handle_keyboard(&mut self, key: KeyEvent) {
+        if let KeyCode::Char('q') = key.code {
+            self.should_quit = true; 
         }
     }
 }

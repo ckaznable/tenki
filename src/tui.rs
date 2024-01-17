@@ -29,7 +29,7 @@ pub struct Tui {
 
 impl Tui {
     pub fn new() -> Result<Self> {
-        let frame_rate = 60.0;
+        let frame_rate = 30.0;
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let task = None;
         Ok(Self {
@@ -75,7 +75,7 @@ impl Tui {
                             Some(Err(_)) => {
                                 _event_tx.send(Event::Error).unwrap();
                             }
-                            None => {},
+                            None => (),
                         }
                     },
                     _ = render_delay => {

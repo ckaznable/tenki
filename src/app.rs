@@ -13,7 +13,7 @@ use tinyvec::ArrayVec;
 
 use crate::{tui::{Tui, Event}, ui::ui};
 
-#[derive(Copy, Clone, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
 pub enum DropSpeed {
     Fast,
     Normal,
@@ -70,7 +70,7 @@ impl State {
         let rng_u64 = self.rng.next_u64();
         for i in 0..64u64 {
             line.push(if rng_u64 & (1 << i) != 0 {
-                Self::get_drop_speed(i)
+                Self::get_drop_speed(rng_u64.saturating_sub(i))
             } else {
                 DropSpeed::None
             });
@@ -89,51 +89,43 @@ impl State {
 
     /// generate new drop line
     fn tick_new_drop(&mut self) {
-        let _ = self.gen_drop()
+        self.gen_drop()
             .into_iter()
             .enumerate()
-            .filter_map(|(i, d)| {
-                self.buf
-                    .get_mut(i)?
-                    .try_borrow_mut()
-                    .ok()?
+            .for_each(|(i, d)| {
+                if let Some(cell) = self.buf
                     .get_mut(i)
-                    .map(|cell| Self::merge_drop_state(*cell, d));
+                    .unwrap()
+                    .try_borrow_mut()
+                    .ok()
+                    .unwrap()
+                    .get_mut(0) {
 
-                Some(())
+                    *cell = Self::merge_drop_state(*cell, d)
+                };
             });
     }
 
     fn tick_drop(col: &mut DropColumn, ticks: u8) {
-        let len = { col.borrow().len() };
+        let len = col.borrow().len();
 
         for col_index in 0..len {
-            let dist = col.clone();
-            let dist = dist.borrow();
-            let Some(dist_state) = dist.get(len.saturating_sub(col_index + 1)) else {
-                continue;
-            };
+            let next_index = len.saturating_sub(col_index.saturating_add(1));
+            let current_index = len.saturating_sub(col_index.saturating_add(2));
+            let current = { col.borrow().get(current_index).cloned() };
+            let Some(current) = current else { continue; };
+            let mut column = col.borrow_mut();
 
-            let previous = col.clone();
-            let previous = previous.borrow();
-            let Some(previous) = previous.get(len.saturating_sub(col_index + 2)) else {
-                continue;
-            };
-
-            let Ok(mut column) = col.try_borrow_mut() else {
-                continue;
-            };
-
-            for p_index in 0..previous.len() {
-                let state = match previous.get(p_index) {
+            'state: for i in 0..current.len() {
+                let state = match current.get(i) {
                     Some(DropSpeed::Fast) => DropSpeed::Fast,
                     Some(DropSpeed::Normal) if ticks % DROP_TICK_NORMAL == 0 => DropSpeed::Normal,
                     Some(DropSpeed::Slow) if ticks % DROP_TICK_SLOW == 0 => DropSpeed::Slow,
-                    _ => continue
+                    _ => continue 'state
                 };
 
-                column[len.saturating_sub(p_index + 1)] = Self::merge_drop_state(*dist_state, state);
-                column[len.saturating_sub(p_index + 2)] = Self::remove_drop_state(*dist_state, state);
+                column[current_index] = Self::remove_drop_state(column[current_index], state);
+                column[next_index] = Self::merge_drop_state(column[next_index], state);
             }
         }
     }
@@ -150,17 +142,17 @@ impl State {
     }
 
     #[inline]
-    fn merge_drop_state(mut cell: DropCell, d: DropSpeed) -> DropCell {
-        if !cell.contains(&d) {
-            cell.push(d);
+    fn merge_drop_state(mut cell: DropCell, state: DropSpeed) -> DropCell {
+        if !cell.contains(&state) && state != DropSpeed::None {
+            cell.push(state);
         };
 
         cell
     }
 
     #[inline]
-    fn remove_drop_state(cell: DropCell, d: DropSpeed) -> DropCell {
-        cell.into_iter().filter(|c| *c != d).collect()
+    fn remove_drop_state(cell: DropCell, state: DropSpeed) -> DropCell {
+        cell.into_iter().filter(|c| *c != state).collect()
     }
 
     #[inline]

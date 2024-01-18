@@ -15,7 +15,7 @@ impl<'a> Rain<'a> {
         use DropSpeed::*;
         match d {
             Fast => '.',
-            Normal => '.',
+            Normal => ':',
             Slow => '|',
             None => ' ',
         }

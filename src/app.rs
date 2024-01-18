@@ -22,8 +22,8 @@ pub enum DropSpeed {
     None,
 }
 
-const DROP_TICK_NORMAL: u8 = 4;
-const DROP_TICK_SLOW: u8 = 6;
+const DROP_TICK_NORMAL: u8 = 2;
+const DROP_TICK_SLOW: u8 = 3;
 
 pub type DropCell = ArrayVec<[DropSpeed; 3]>;
 pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
@@ -80,7 +80,7 @@ impl State {
     }
 
     fn increase_ticks(&mut self) {
-        if self.ticks == 252 {
+        if self.ticks == 240 {
             self.ticks = 1
         } else {
             self.ticks = self.ticks.saturating_add(1)
@@ -157,7 +157,7 @@ impl State {
 
     #[inline]
     fn get_drop_speed(num: u64) -> DropSpeed {
-        match num % 3 {
+        match num % 24 {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,

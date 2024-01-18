@@ -30,7 +30,8 @@ pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
 pub struct State {
     pub buf: Vec<DropColumn>,
-    pub ticks: u8,
+    buf_line: Vec<DropSpeed>,
+    ticks: u8,
     rng: SmallRng,
 }
 
@@ -47,6 +48,7 @@ impl State {
         }
 
         State {
+            buf_line: Vec::with_capacity(buf.len()),
             buf,
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
@@ -65,18 +67,25 @@ impl State {
         self.tick_new_drop();
     }
 
-    fn gen_drop(&mut self) -> Vec<DropSpeed> {
-        let mut line: Vec<DropSpeed> = Vec::with_capacity(self.buf.len());
-        let rng_u64 = self.rng.next_u64();
-        for i in 0..64u64 {
-            line.push(if rng_u64 & (1 << i) != 0 {
-                Self::get_drop_speed(rng_u64.saturating_sub(i))
-            } else {
-                DropSpeed::None
-            });
-        }
+    fn gen_drop(&mut self) {
+        self.buf_line.clear();
 
-        line
+        const GROUP_SIZE: u64 = 64;
+        let len = self.buf.len() as u64;
+        let last_group = len % GROUP_SIZE;
+        let groups = len / GROUP_SIZE + if last_group > 0 { 1 } else { 0 };
+
+        for g in 0..groups {
+            let range = if groups.saturating_sub(1) == g { last_group } else { GROUP_SIZE };
+            let rng_u64 = self.rng.next_u64();
+            for i in 0..range {
+                self.buf_line.push(if rng_u64 & (1 << i) != 0 {
+                    Self::get_drop_speed(rng_u64.saturating_sub(i))
+                } else {
+                    DropSpeed::None
+                });
+            }
+        }
     }
 
     fn increase_ticks(&mut self) {
@@ -89,8 +98,9 @@ impl State {
 
     /// generate new drop line
     fn tick_new_drop(&mut self) {
-        self.gen_drop()
-            .into_iter()
+        self.gen_drop();
+        self.buf_line
+            .iter()
             .enumerate()
             .for_each(|(i, d)| {
                 if let Some(cell) = self.buf
@@ -101,7 +111,7 @@ impl State {
                     .unwrap()
                     .get_mut(0) {
 
-                    *cell = Self::merge_drop_state(*cell, d)
+                    *cell = Self::merge_drop_state(*cell, *d)
                 };
             });
     }
@@ -157,7 +167,7 @@ impl State {
 
     #[inline]
     fn get_drop_speed(num: u64) -> DropSpeed {
-        match num % 24 {
+        match num % 48 {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,

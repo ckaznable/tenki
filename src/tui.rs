@@ -46,12 +46,13 @@ impl Tui {
         let _event_tx = self.event_tx.clone();
 
         let task = tokio::spawn(async move {
+            _event_tx.send(Event::Init).unwrap();
+            waiting_time_to_sync();
+
             let mut reader = crossterm::event::EventStream::new();
             let mut render_interval = tokio::time::interval(render_delay);
             let mut timer_interval = tokio::time::interval(timer_delay);
-            _event_tx.send(Event::Init).unwrap();
 
-            waiting_time_to_sync();
             loop {
                 let render_delay = render_interval.tick();
                 let timer_delay = timer_interval.tick();

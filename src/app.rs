@@ -1,6 +1,7 @@
 use std::{rc::Rc, cell::RefCell, time::SystemTime};
 
 use anyhow::Result;
+use chrono::{DateTime, Local, Timelike};
 use crossterm::{
     cursor,
     event::{DisableMouseCapture, KeyEvent, KeyCode},
@@ -86,14 +87,12 @@ impl State {
     }
 
     pub fn tick_timer(&mut self) {
-        if let Ok(now) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            let total_seconds = now.as_secs();
-
-            self.timer = self.timer
-                .hours(((total_seconds / 3600) % 24) as u8)
-                .minutes(((total_seconds % 3600) / 60) as u8)
-                .seconds((total_seconds % 60) as u8)
-        }
+        let system_time = SystemTime::now();
+        let datetime: DateTime<Local> = system_time.into();
+        self.timer = self.timer
+            .hours(datetime.hour() as u8)
+            .minutes(datetime.minute() as u8)
+            .seconds(datetime.second() as u8)
     }
 
     pub fn tick(&mut self) {

@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell, time::SystemTime};
 
 use anyhow::Result;
 use crossterm::{
@@ -28,8 +28,33 @@ const DROP_TICK_SLOW: u8 = 3;
 pub type DropCell = ArrayVec<[DropSpeed; 3]>;
 pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
+#[derive(Default, Copy, Clone)]
+pub struct Timer {
+    pub hours: u8,
+    pub minutes: u8,
+    pub seconds: u8,
+}
+
+impl Timer {
+    pub fn hours(mut self, h: u8) -> Self {
+        self.hours = h;
+        self
+    }
+
+    pub fn minutes(mut self, m: u8) -> Self {
+        self.minutes = m;
+        self
+    }
+
+    pub fn seconds(mut self, s: u8) -> Self {
+        self.seconds = s;
+        self
+    }
+}
+
 pub struct State {
     pub buf: Vec<DropColumn>,
+    pub timer: Timer,
     buf_line: Vec<DropSpeed>,
     ticks: u8,
     rng: SmallRng,
@@ -44,6 +69,7 @@ impl State {
             buf_line,
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
+            timer: Timer::default(),
         }
     }
 
@@ -57,6 +83,17 @@ impl State {
 
         self.buf = buf;
         self.buf_line = buf_line;
+    }
+
+    pub fn tick_timer(&mut self) {
+        if let Ok(now) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+            let total_seconds = now.as_secs();
+
+            self.timer = self.timer
+                .hours(((total_seconds / 3600) % 24) as u8)
+                .minutes(((total_seconds % 3600) / 60) as u8)
+                .seconds((total_seconds % 60) as u8)
+        }
     }
 
     pub fn tick(&mut self) {
@@ -233,7 +270,7 @@ impl App {
                     Error => self.should_quit = true,
                     Render => self.state.tick(),
                     Key(key) => self.handle_keyboard(key),
-                    Timer => (),
+                    Timer => self.state.tick_timer(),
                     Resize(columns, rows) => self.state.on_resize(columns, rows),
                 };
             };

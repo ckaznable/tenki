@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell, borrow::BorrowMut};
 
 use anyhow::Result;
 use crossterm::{
@@ -37,22 +37,26 @@ pub struct State {
 
 impl State {
     pub fn new(size: Rect) -> Self {
-        let mut buf = Vec::with_capacity(size.width as usize);
-        for _ in 0..size.width {
-            let mut column = Vec::with_capacity(size.height as usize);
-            for _ in 0..size.height {
-                column.push(ArrayVec::<[DropSpeed; 3]>::default());
-            }
-
-            buf.push(Rc::new(RefCell::new(column)));
-        }
+        let (buf, buf_line) = Self::init_buf(size);
 
         State {
-            buf_line: Vec::with_capacity(buf.len()),
             buf,
+            buf_line,
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
         }
+    }
+
+    pub fn on_resize(&mut self, columns: u16, rows: u16) {
+        let (buf, buf_line) = Self::init_buf(Rect {
+            x: 0,
+            y: 0,
+            height: rows,
+            width: columns,
+        });
+
+        self.buf = buf;
+        self.buf_line = buf_line;
     }
 
     pub fn tick(&mut self) {
@@ -65,6 +69,21 @@ impl State {
         }
 
         self.tick_new_drop();
+    }
+
+    fn init_buf(size: Rect) -> (Vec<DropColumn>, Vec<DropSpeed>) {
+        let mut buf = Vec::with_capacity(size.width as usize);
+        for _ in 0..size.width {
+            let mut column = Vec::with_capacity(size.height as usize);
+            for _ in 0..size.height {
+                column.push(ArrayVec::<[DropSpeed; 3]>::default());
+            }
+
+            buf.push(Rc::new(RefCell::new(column)));
+        }
+
+        let len = buf.len();
+        (buf, Vec::with_capacity(len))
     }
 
     fn gen_drop(&mut self) {
@@ -124,7 +143,7 @@ impl State {
             let current_index = len.saturating_sub(col_index.saturating_add(2));
             let current = { col.borrow().get(current_index).cloned() };
             let Some(current) = current else { continue; };
-            let mut column = col.borrow_mut();
+            let mut column = col.try_borrow_mut().unwrap();
 
             'state: for i in 0..current.len() {
                 let state = match current.get(i) {
@@ -167,7 +186,7 @@ impl State {
 
     #[inline]
     fn get_drop_speed(num: u64) -> DropSpeed {
-        match num % 48 {
+        match num % 24 {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,
@@ -215,7 +234,7 @@ impl App {
                     Render => self.state.tick(),
                     Key(key) => self.handle_keyboard(key),
                     Timer => (),
-                    Resize(_, _) => (),
+                    Resize(columns, rows) => self.state.on_resize(columns, rows),
                 };
             };
 

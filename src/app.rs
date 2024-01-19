@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell, borrow::BorrowMut};
+use std::{rc::Rc, cell::RefCell};
 
 use anyhow::Result;
 use crossterm::{

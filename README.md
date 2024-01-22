@@ -25,6 +25,7 @@ sudo make uninsall
 
 ## Roadmap
 
+- [ ] CLI options
 - [ ] customizable
 - [ ] more weather
   - [ ] snow drop

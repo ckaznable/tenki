@@ -143,12 +143,9 @@ impl State {
         }
     }
 
+    #[inline]
     fn increase_ticks(&mut self) {
-        if self.ticks == 240 {
-            self.ticks = 1
-        } else {
-            self.ticks = self.ticks.saturating_add(1)
-        }
+        self.ticks = if self.ticks == 240 { 1 } else { self.ticks.saturating_add(1) }
     }
 
     /// generate new drop line
@@ -286,7 +283,7 @@ impl App {
 
     fn handle_keyboard(&mut self, key: KeyEvent) {
         if let KeyCode::Char('q') = key.code {
-            self.should_quit = true; 
+            self.should_quit = true;
         }
     }
 }

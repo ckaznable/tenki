@@ -153,6 +153,10 @@ impl State {
     }
 
     fn tick_wind(&mut self) {
+        if self.buf.len() == 1 {
+            return;
+        }
+
         self.wind = self.wind.tick();
 
         if self.wind == Wind::None {

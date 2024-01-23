@@ -1,9 +1,15 @@
 use ratatui::Frame;
 
-use crate::{app::State, widget::{rain::Rain, timer::Timer}};
+use crate::{app::{State, Mode}, widget::{rain::Rain, timer::Timer, snow::Snow}};
 
 pub fn ui(f: &mut Frame, state: &mut State) {
     let area = f.size();
-    f.render_widget(Rain::new(&state.buf), area);
+
+    match state.mode {
+        Mode::Rain => f.render_widget(Rain::new(&state.buf), area),
+        Mode::Snow => f.render_widget(Snow::new(&state.buf), area),
+    };
+
     f.render_widget(Timer(state.timer), area);
 }
+

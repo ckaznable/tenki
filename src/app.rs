@@ -1,7 +1,8 @@
-use std::{rc::Rc, cell::RefCell, time::SystemTime};
+use std::{rc::Rc, cell::RefCell, time::SystemTime, fmt::Display};
 
 use anyhow::Result;
 use chrono::{DateTime, Local, Timelike};
+use clap::ValueEnum;
 use crossterm::{
     cursor,
     event::{DisableMouseCapture, KeyEvent, KeyCode},
@@ -21,6 +22,24 @@ pub enum DropSpeed {
     Slow,
     #[default]
     None,
+}
+
+#[derive(Copy, Clone, Default, ValueEnum)]
+pub enum Mode {
+    #[default]
+    Rain,
+    Snow
+}
+
+impl Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match *self {
+            Mode::Rain => "rain",
+            Mode::Snow => "snow",
+        };
+
+        s.fmt(f)
+    }
 }
 
 const DROP_TICK_NORMAL: u8 = 2;
@@ -56,13 +75,14 @@ impl Timer {
 pub struct State {
     pub buf: Vec<DropColumn>,
     pub timer: Timer,
+    pub mode: Mode,
     buf_line: Vec<DropSpeed>,
     ticks: u8,
     rng: SmallRng,
 }
 
 impl State {
-    pub fn new(size: Rect) -> Self {
+    pub fn new(size: Rect, mode: Mode) -> Self {
         let (buf, buf_line) = Self::init_buf(size);
 
         State {
@@ -71,6 +91,7 @@ impl State {
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
             timer: Timer::default(),
+            mode,
         }
     }
 
@@ -236,7 +257,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Result<Self> {
+    pub fn new(mode: Mode) -> Result<Self> {
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = std::io::stdout();
@@ -244,7 +265,7 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?);
+        let state = State::new(terminal.size()?, mode);
 
         Ok(Self {
             terminal,

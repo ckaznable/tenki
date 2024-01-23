@@ -1,16 +1,17 @@
 use ratatui::{widgets::Widget, buffer::Buffer, layout::Rect};
 
-use crate::app::{DropColumn, DropSpeed};
+use crate::app::{DropColumn, DropSpeed, Wind};
 
 use super::BackgroundWidget;
 
 pub struct Rain<'a> {
     buf: &'a Vec<DropColumn>,
+    wind: Wind,
 }
 
 impl<'a> Rain<'a> {
-    pub fn new(buf: &'a Vec<DropColumn>) -> Self {
-        Self { buf }
+    pub fn new(buf: &'a Vec<DropColumn>, wind: Wind) -> Self {
+        Self { buf, wind }
     }
 }
 
@@ -19,12 +20,16 @@ impl<'a> BackgroundWidget for Rain<'a> {
         self.buf
     }
 
-    fn get_drop_char(d: DropSpeed) -> char {
+    fn get_drop_char(&self, d: DropSpeed) -> char {
         use DropSpeed::*;
         match d {
             Fast => '.',
             Normal => ':',
-            Slow => '|',
+            Slow => match self.wind {
+                Wind::Left(_) => '/',
+                Wind::Right(_) => '\\',
+                Wind::None => '|'
+            },
             None => ' ',
         }
     }

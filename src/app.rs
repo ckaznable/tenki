@@ -42,6 +42,24 @@ impl Display for Mode {
     }
 }
 
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
+pub enum Wind {
+    Left(u8),
+    Right(u8),
+    #[default]
+    None,
+}
+
+impl Wind {
+    pub fn tick(self) -> Self {
+        match self {
+            Wind::None => Wind::None,
+            Wind::Left(tick) => if tick == 0 { Wind::None } else { Wind::Left(tick.saturating_sub(1)) },
+            Wind::Right(tick) => if tick == 0 { Wind::None } else { Wind::Right(tick.saturating_sub(1)) },
+        }
+    }
+}
+
 const DROP_TICK_NORMAL: u8 = 2;
 const DROP_TICK_SLOW: u8 = 3;
 
@@ -76,9 +94,11 @@ pub struct State {
     pub buf: Vec<DropColumn>,
     pub timer: Timer,
     pub mode: Mode,
+    pub wind: Wind,
     buf_line: Vec<DropSpeed>,
     ticks: u8,
     rng: SmallRng,
+    seed: u64,
 }
 
 impl State {
@@ -92,6 +112,8 @@ impl State {
             ticks: 0u8,
             timer: Timer::default(),
             mode,
+            wind: Wind::None,
+            seed: 0,
         }
     }
 
@@ -117,7 +139,9 @@ impl State {
     }
 
     pub fn tick(&mut self) {
+        self.gen_seed();
         self.increase_ticks();
+        self.tick_wind();
 
         // each column
         for i in 0..self.buf.len() {
@@ -126,6 +150,32 @@ impl State {
         }
 
         self.tick_new_drop();
+    }
+
+    fn tick_wind(&mut self) {
+        self.wind = self.wind.tick();
+
+        if self.wind == Wind::None {
+            if self.seed % 2024 == 0 {
+                self.wind = Wind::Left(255);
+            } else if self.seed % 123 == 0 {
+                self.wind = Wind::Right(255);
+            } else {
+                return;
+            }
+        }
+
+        if let Wind::Left(_) = self.wind {
+            self.buf.reverse();
+        }
+
+        for i in 1..self.buf.len() {
+            self.buf.swap(0, i);
+        }
+
+        if let Wind::Left(_) = self.wind {
+            self.buf.reverse();
+        }
     }
 
     fn init_buf(size: Rect) -> (Vec<DropColumn>, Vec<DropSpeed>) {
@@ -143,6 +193,10 @@ impl State {
         (buf, Vec::with_capacity(len))
     }
 
+    fn gen_seed(&mut self) {
+        self.seed = self.rng.next_u64();
+    }
+
     fn gen_drop(&mut self) {
         self.buf_line.clear();
 
@@ -153,10 +207,9 @@ impl State {
 
         for g in 0..groups {
             let range = if groups.saturating_sub(1) == g { last_group } else { GROUP_SIZE };
-            let rng_u64 = self.rng.next_u64();
             for i in 0..range {
-                self.buf_line.push(if rng_u64 & (1 << i) != 0 {
-                    Self::get_drop_speed(rng_u64.saturating_sub(i))
+                self.buf_line.push(if self.seed & (1 << i) != 0 {
+                    Self::get_drop_speed(self.seed.saturating_sub(i))
                 } else {
                     DropSpeed::None
                 });

@@ -8,10 +8,10 @@ pub mod snow;
 
 pub trait BackgroundWidget {
     fn buf(&self) -> &Vec<DropColumn>;
-    fn get_drop_char(d: DropSpeed) -> char;
+    fn get_drop_char(&self, d: DropSpeed) -> char;
 
-    fn get_render_char(cell: &DropCell) -> char {
-        Self::get_drop_char(
+    fn get_render_char(&self, cell: &DropCell) -> char {
+        self.get_drop_char(
             if cell.contains(&DropSpeed::Slow) {
                 DropSpeed::Slow
             } else if !cell.is_empty() {
@@ -28,7 +28,7 @@ pub trait BackgroundWidget {
 
             for y in area.top()..area.bottom() {
                 let Some(cell) = column.get(y as usize) else { continue; };
-                buf.get_mut(x, y).set_char(Self::get_render_char(cell));
+                buf.get_mut(x, y).set_char(self.get_render_char(cell));
             }
         }
     }

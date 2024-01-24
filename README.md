@@ -23,12 +23,22 @@ If you want to uninstall
 sudo make uninsall
 ```
 
+## Usage
+
+```
+Usage: tenki [OPTIONS]
+
+Options:
+      --mode <MODE>  [default: rain] [possible values: rain, snow]
+      --fps <FPS>    [default: 30] 1-60
+  -h, --help         Print help
+  -V, --version      Print version
+```
+
 ## Roadmap
 
-- [ ] CLI options
+- [x] CLI options
 - [ ] customizable
-- [ ] more weather
-  - [ ] snow drop
 
 ## LICENSE
 

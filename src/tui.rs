@@ -28,8 +28,7 @@ pub struct Tui {
 }
 
 impl Tui {
-    pub fn new() -> Result<Self> {
-        let frame_rate = 60.0;
+    pub fn new(frame_rate: f64) -> Result<Self> {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let task = None;
         Ok(Self {

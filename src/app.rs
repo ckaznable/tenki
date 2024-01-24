@@ -13,7 +13,7 @@ use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
 use tinyvec::ArrayVec;
 
-use crate::{tui::{Tui, Event}, ui::ui};
+use crate::{tui::{Tui, Event}, ui::ui, cli::Args};
 
 #[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
 pub enum DropSpeed {
@@ -314,7 +314,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(mode: Mode) -> Result<Self> {
+    pub fn new(args: Args) -> Result<Self> {
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = std::io::stdout();
@@ -322,12 +322,12 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?, mode);
+        let state = State::new(terminal.size()?, args.mode);
 
         Ok(Self {
             terminal,
             state,
-            tui: Tui::new()?,
+            tui: Tui::new(args.fps as f64)?,
             should_quit: false,
         })
     }

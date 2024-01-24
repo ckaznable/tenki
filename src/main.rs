@@ -13,7 +13,7 @@ use cli::Args;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut app = App::new(args.mode)?;
+    let mut app = App::new(args)?;
     app.run().await?;
     Ok(())
 }

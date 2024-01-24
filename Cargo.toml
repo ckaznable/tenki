@@ -17,6 +17,7 @@ tinyvec = "1.6.0"
 itertools = "0.12.0"
 chrono = { version = "0.4.31", features = ["std", "clock"], default-features = false }
 clap = { version = "4.4.18", features = ["derive"] }
+clap-num = "1.1.1"
 
 [profile.release]
 opt-level = "z"

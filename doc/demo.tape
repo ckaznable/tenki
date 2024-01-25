@@ -5,7 +5,7 @@ Set Width 1280
 Set Height 600
 
 Hide
-Type "tenki"
+Type "tenki --fps 60"
 Enter
 Sleep 1s
 

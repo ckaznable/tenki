@@ -1,4 +1,4 @@
-use ratatui::{widgets::Widget, buffer::Buffer, layout::Rect};
+use ratatui::{widgets::Widget, buffer::Buffer, layout::Rect, style::Color};
 
 use crate::app::{DropColumn, DropSpeed, Wind};
 
@@ -18,6 +18,10 @@ impl<'a> Rain<'a> {
 impl<'a> BackgroundWidget for Rain<'a> {
     fn buf(&self) -> &Vec<DropColumn> {
         self.buf
+    }
+
+    fn get_drop_color(&self) -> Color {
+        Color::Rgb(150, 150, 150)
     }
 
     fn get_drop_char(&self, d: DropSpeed) -> char {

@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use ratatui::{widgets::Widget, layout::{Rect, Layout, Direction, Constraint}, buffer::Buffer};
+use ratatui::{widgets::Widget, layout::{Rect, Layout, Direction, Constraint}, buffer::Buffer, style::Color};
 
 pub const TIMER_CHAR: char = '█';
 pub const COLON_CHAR: char = '▀';
@@ -91,8 +91,8 @@ impl Timer {
         let left = area.left();
         let top = area.top();
 
-        buf.get_mut(left + 1, top + 1).set_char(COLON_CHAR);
-        buf.get_mut(left + 1, top + 3).set_char(COLON_CHAR);
+        buf.get_mut(left + 1, top + 1).set_char(COLON_CHAR).set_fg(Color::Reset);
+        buf.get_mut(left + 1, top + 3).set_char(COLON_CHAR).set_fg(Color::Reset);
     }
 
     fn render_decimal(d: u8, area: Rect, buf: &mut Buffer) {
@@ -128,7 +128,9 @@ impl Timer {
                     .enumerate()
                     .for_each(|(x, c)| {
                         if *c > 0 {
-                            buf.get_mut(left + x as u16, top + y as u16).set_char(TIMER_CHAR);
+                            buf .get_mut(left + x as u16, top + y as u16)
+                                .set_char(TIMER_CHAR)
+                                .set_fg(Color::Reset);
                         }
                     })
             });

@@ -1,4 +1,4 @@
-use ratatui::{layout::Rect, buffer::Buffer};
+use ratatui::{layout::Rect, buffer::Buffer, style::Color};
 
 use crate::app::{DropSpeed, DropColumn, DropCell};
 
@@ -9,6 +9,10 @@ pub mod snow;
 pub trait BackgroundWidget {
     fn buf(&self) -> &Vec<DropColumn>;
     fn get_drop_char(&self, d: DropSpeed) -> char;
+
+    fn get_drop_color(&self) -> Color {
+        Color::Reset
+    }
 
     fn get_render_char(&self, cell: &DropCell) -> char {
         self.get_drop_char(
@@ -28,7 +32,7 @@ pub trait BackgroundWidget {
 
             for y in area.top()..area.bottom() {
                 let Some(cell) = column.get(y as usize) else { continue; };
-                buf.get_mut(x, y).set_char(self.get_render_char(cell));
+                buf.get_mut(x, y).set_char(self.get_render_char(cell)).set_fg(self.get_drop_color());
             }
         }
     }

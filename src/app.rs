@@ -99,10 +99,11 @@ pub struct State {
     ticks: u8,
     rng: SmallRng,
     seed: u64,
+    threshold: u64,
 }
 
 impl State {
-    pub fn new(size: Rect, mode: Mode) -> Self {
+    pub fn new(size: Rect, mode: Mode, threshold: u64) -> Self {
         let (buf, buf_line) = Self::init_buf(size);
 
         State {
@@ -111,6 +112,7 @@ impl State {
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
             timer: Timer::default(),
+            threshold,
             mode,
             wind: Wind::None,
             seed: 0,
@@ -213,7 +215,7 @@ impl State {
             let range = if groups.saturating_sub(1) == g { last_group } else { GROUP_SIZE };
             for i in 0..range {
                 self.buf_line.push(if self.seed & (1 << i) != 0 {
-                    Self::get_drop_speed(self.seed.saturating_sub(i))
+                    Self::get_drop_speed(self.seed.saturating_sub(i), self.threshold)
                 } else {
                     DropSpeed::None
                 });
@@ -296,8 +298,8 @@ impl State {
     }
 
     #[inline]
-    fn get_drop_speed(num: u64) -> DropSpeed {
-        match num % 24 {
+    fn get_drop_speed(num: u64, threshold: u64) -> DropSpeed {
+        match num % threshold {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,
@@ -322,7 +324,7 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?, args.mode);
+        let state = State::new(terminal.size()?, args.mode, args.level as u64);
 
         Ok(Self {
             terminal,

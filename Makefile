@@ -9,6 +9,6 @@ uninstall:
 	rm /usr/local/bin/tenki
 
 clean:
-	rm -rf target
+	cargo clean
 
 all: build install clean

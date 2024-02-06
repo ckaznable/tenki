@@ -29,10 +29,11 @@ sudo make uninsall
 Usage: tenki [OPTIONS]
 
 Options:
-      --mode <MODE>  [default: rain] [possible values: rain, snow]
-      --fps <FPS>    [default: 30] 1-60
-  -h, --help         Print help
-  -V, --version      Print version
+      --mode <MODE>    [default: rain] [possible values: rain, snow]
+      --fps <FPS>      [default: 30] 1-60
+  -l, --level <LEVEL>  effect level, The lower, the stronger [4-1000] [default: 50]
+  -h, --help           Print help
+  -V, --version        Print version
 ```
 
 ## Roadmap

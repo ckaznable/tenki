@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use clap::Parser;
 use clap_num::number_range;
-
+use ratatui::style::Color;
 use crate::app::Mode;
 
 #[derive(Parser)]
@@ -15,6 +17,9 @@ pub struct Args {
     /// effect level, The lower, the stronger [4-1000]
     #[arg(short, long, value_parser = level_range, default_value_t = 50)]
     pub level: u16,
+
+    #[arg(long, value_parser = Color::from_str, default_value = "white")]
+    pub color: Color,
 }
 
 fn fps_range(s: &str) -> Result<u8, String> {

@@ -10,7 +10,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
-use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
+use ratatui::{backend::CrosstermBackend, layout::Rect, style::Color, Terminal};
 use tinyvec::ArrayVec;
 
 use crate::{tui::{Tui, Event}, ui::ui, cli::Args};
@@ -71,6 +71,7 @@ pub struct Timer {
     pub hours: u8,
     pub minutes: u8,
     pub seconds: u8,
+    pub color: Color,
 }
 
 impl Timer {
@@ -103,7 +104,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(size: Rect, mode: Mode, threshold: u64) -> Self {
+    pub fn new(size: Rect, mode: Mode, threshold: u64, color: Color) -> Self {
         let (buf, buf_line) = Self::init_buf(size);
 
         State {
@@ -111,7 +112,10 @@ impl State {
             buf_line,
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
-            timer: Timer::default(),
+            timer: Timer {
+                color,
+                ..Default::default()
+            },
             threshold,
             mode,
             wind: Wind::None,
@@ -324,7 +328,7 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?, args.mode, args.level as u64);
+        let state = State::new(terminal.size()?, args.mode, args.level as u64, args.color);
 
         Ok(Self {
             terminal,

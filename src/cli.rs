@@ -18,8 +18,9 @@ pub struct Args {
     #[arg(short, long, value_parser = level_range, default_value_t = 50)]
     pub level: u16,
 
+    /// color of the effect. [red, green, blue, yellow, cyan, magenta, white, black]
     #[arg(long, value_parser = Color::from_str, default_value = "white")]
-    pub color: Color,
+    pub timer_color: Color,
 }
 
 fn fps_range(s: &str) -> Result<u8, String> {

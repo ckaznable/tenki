@@ -104,7 +104,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(size: Rect, mode: Mode, threshold: u64, color: Color) -> Self {
+    pub fn new(size: Rect, mode: Mode, threshold: u64, timer_color: Color) -> Self {
         let (buf, buf_line) = Self::init_buf(size);
 
         State {
@@ -113,7 +113,7 @@ impl State {
             rng: SmallRng::from_entropy(),
             ticks: 0u8,
             timer: Timer {
-                color,
+                color: timer_color,
                 ..Default::default()
             },
             threshold,
@@ -328,7 +328,11 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?, args.mode, args.level as u64, args.color);
+        let state = State::new(
+            terminal.size()?, 
+            args.mode, 
+            args.level as u64, 
+            args.timer_color);
 
         Ok(Self {
             terminal,

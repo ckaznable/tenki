@@ -87,7 +87,7 @@ static ASCII_9: [u8; 25] = [
 pub struct Timer(pub crate::app::Timer);
 
 impl Timer {
-    fn render_colon(area: Rect, buf: &mut Buffer, color: Color) {
+    fn render_colon(area: Rect, color: Color, buf: &mut Buffer) {
         let left = area.left();
         let top = area.top();
 
@@ -95,7 +95,7 @@ impl Timer {
         buf.get_mut(left + 1, top + 3).set_char(COLON_CHAR).set_fg(color);
     }
 
-    fn render_decimal(d: u8, area: Rect, buf: &mut Buffer, color: Color) {
+    fn render_decimal(d: u8, area: Rect, color: Color, buf: &mut Buffer) {
         let layout = Layout::new(Direction::Horizontal, Constraint::from_lengths([5, 1, 5])).split(area);
         Self::render_number(d / 10, layout[0], buf, color);
         Self::render_number(d % 10, layout[2], buf, color);
@@ -160,11 +160,11 @@ impl Widget for Timer {
         )
         .split(center_area);
 
-        Self::render_decimal(self.0.hours, layout[0], buf, self.0.color);
-        Self::render_colon(layout[1], buf, self.0.color);
-        Self::render_decimal(self.0.minutes, layout[2], buf, self.0.color);
-        Self::render_colon(layout[3], buf, self.0.color);
-        Self::render_decimal(self.0.seconds, layout[4], buf, self.0.color);
+        Self::render_decimal(self.0.hours, layout[0], self.0.color, buf);
+        Self::render_colon(layout[1], self.0.color, buf);
+        Self::render_decimal(self.0.minutes, layout[2], self.0.color, buf);
+        Self::render_colon(layout[3], self.0.color, buf);
+        Self::render_decimal(self.0.seconds, layout[4], self.0.color , buf);
     }
 }
 

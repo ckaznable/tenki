@@ -23,6 +23,14 @@ If you want to uninstall
 sudo make uninsall
 ```
 
+### Install from the AUR
+
+If you are using Arch Linux, you can install tenki using an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers). For example:
+
+```shell
+paru -S tenki
+```
+
 ## Usage
 
 ```

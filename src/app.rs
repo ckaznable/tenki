@@ -329,9 +329,9 @@ impl App {
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
         let state = State::new(
-            terminal.size()?, 
-            args.mode, 
-            args.level as u64, 
+            terminal.size()?,
+            args.mode,
+            args.level as u64,
             args.timer_color);
 
         Ok(Self {
@@ -370,8 +370,9 @@ impl App {
     }
 
     fn handle_keyboard(&mut self, key: KeyEvent) {
-        if let KeyCode::Char('q') = key.code {
-            self.should_quit = true;
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => self.should_quit = true,
+            _ => {}
         }
     }
 }

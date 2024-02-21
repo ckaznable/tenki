@@ -154,17 +154,17 @@ impl Timer {
 impl Widget for Timer {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let center_area = Self::get_center_area(area);
-        let layout = Layout::new(
+        let [hours, colon_left, minutes, colon_right, seconds] = Layout::new(
             Direction::Horizontal,
             Constraint::from_lengths([11, 3, 11, 3, 11]),
         )
-        .split(center_area);
+        .areas(center_area);
 
-        Self::render_decimal(self.0.hours, layout[0], self.0.color, buf);
-        Self::render_colon(layout[1], self.0.color, buf);
-        Self::render_decimal(self.0.minutes, layout[2], self.0.color, buf);
-        Self::render_colon(layout[3], self.0.color, buf);
-        Self::render_decimal(self.0.seconds, layout[4], self.0.color , buf);
+        Self::render_decimal(self.0.hours, hours, self.0.color, buf);
+        Self::render_colon(colon_left, self.0.color, buf);
+        Self::render_decimal(self.0.minutes, minutes, self.0.color, buf);
+        Self::render_colon(colon_right, self.0.color, buf);
+        Self::render_decimal(self.0.seconds, seconds, self.0.color , buf);
     }
 }
 

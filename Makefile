@@ -2,11 +2,10 @@ build:
 	cargo build --release
 
 install:
-	cp target/release/tenki /usr/local/bin/
-	chmod +x /usr/local/bin/tenki
+	./scripts/setup.sh
 
 uninstall:
-	rm /usr/local/bin/tenki
+	./scripts/setup.sh uninstall
 
 clean:
 	cargo clean -q

@@ -14,13 +14,13 @@ tenki is written in Rust, so you'll need to grab a [Rust installation](https://w
 git clone https://github.com/ckaznable/tenki
 cd tenki
 make build
-sudo make install
+make install
 ```
 
 If you want to uninstall
 
 ```shell
-sudo make uninsall
+make uninsall
 ```
 
 ### Install from the AUR

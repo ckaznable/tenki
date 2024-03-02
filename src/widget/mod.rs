@@ -5,6 +5,7 @@ use crate::app::{DropSpeed, DropColumn, DropCell};
 pub mod timer;
 pub mod rain;
 pub mod snow;
+pub mod stars;
 
 pub trait BackgroundWidget {
     fn buf(&self) -> &Vec<DropColumn>;

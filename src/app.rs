@@ -15,20 +15,32 @@ use tinyvec::ArrayVec;
 
 use crate::{tui::{Tui, Event}, ui::ui, cli::Args};
 
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
+#[derive(Copy, Clone, Eq, Default, Debug)]
 pub enum DropSpeed {
     Fast,
-    Normal,
+    Normal(u8),
     Slow,
     #[default]
     None,
 }
 
-#[derive(Copy, Clone, Default, ValueEnum)]
+// Ignoring tail length of normal speeding particles.
+// It makes cell.contains(&DropSpeed::Normal(_any_)) work.
+impl PartialEq for DropSpeed {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Normal(_), Self::Normal(_)) => true,
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Default, ValueEnum, PartialEq)]
 pub enum Mode {
     #[default]
     Rain,
-    Snow
+    Snow,
+    Stars,
 }
 
 impl Display for Mode {
@@ -36,6 +48,7 @@ impl Display for Mode {
         let s = match *self {
             Mode::Rain => "rain",
             Mode::Snow => "snow",
+            Mode::Stars => "stars",
         };
 
         s.fmt(f)
@@ -62,6 +75,8 @@ impl Wind {
 
 const DROP_TICK_NORMAL: u8 = 2;
 const DROP_TICK_SLOW: u8 = 3;
+
+const TAIL_LENGTH: u8 = 2;
 
 pub type DropCell = ArrayVec<[DropSpeed; 3]>;
 pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
@@ -155,6 +170,7 @@ impl State {
             Self::tick_drop(&mut self.buf[i], self.ticks);
         }
 
+        self.tick_tail();
         self.tick_new_drop();
     }
 
@@ -232,6 +248,43 @@ impl State {
         self.ticks = if self.ticks == 240 { 1 } else { self.ticks.saturating_add(1) }
     }
 
+    fn tick_tail(&mut self) {
+        if self.ticks % DROP_TICK_NORMAL != 0 || self.mode != Mode::Stars {
+            return;
+        }
+
+        let (start, end, look_at) = match self.wind {
+            Wind::Left(_) => (1, self.buf.len(), -1),
+            Wind::Right(_) => (0, self.buf.len() - 1, 1),
+            Wind::None => (0, self.buf.len(), 0),
+        };
+
+        for i in start..end {
+            let mut head = None;
+
+            if let Some(cell) = self
+                .buf
+                .get((i as i32 + look_at) as usize)
+                .unwrap()
+                .borrow_mut()
+                .get(1)
+            {
+                head = cell.iter().find_map(|&drop| match drop {
+                    DropSpeed::Normal(tail_len) if tail_len < TAIL_LENGTH => {
+                        Some(DropSpeed::Normal(tail_len))
+                    }
+                    _ => None,
+                });
+            }
+
+            if let Some(DropSpeed::Normal(tail_len)) = head {
+                if let Some(cell) = self.buf.get_mut(i).unwrap().borrow_mut().get_mut(0) {
+                    *cell = Self::merge_drop_state(*cell, DropSpeed::Normal(tail_len + 1));
+                }
+            }
+        }
+    }
+
     /// generate new drop line
     fn tick_new_drop(&mut self) {
         self.gen_drop();
@@ -265,7 +318,9 @@ impl State {
             'state: for i in 0..current.len() {
                 let state = match current.get(i) {
                     Some(DropSpeed::Fast) => DropSpeed::Fast,
-                    Some(DropSpeed::Normal) if ticks % DROP_TICK_NORMAL == 0 => DropSpeed::Normal,
+                    Some(DropSpeed::Normal(tail_len)) if ticks % DROP_TICK_NORMAL == 0 => {
+                        DropSpeed::Normal(*tail_len)
+                    }
                     Some(DropSpeed::Slow) if ticks % DROP_TICK_SLOW == 0 => DropSpeed::Slow,
                     _ => continue 'state
                 };
@@ -304,7 +359,7 @@ impl State {
     #[inline]
     fn get_drop_speed(num: u64, threshold: u64) -> DropSpeed {
         match num % threshold {
-            0 => DropSpeed::Normal,
+            0 => DropSpeed::Normal(0),
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,
             _ => DropSpeed::None,

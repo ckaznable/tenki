@@ -21,17 +21,19 @@ impl<'a> BackgroundWidget for Snow<'a> {
 
     fn get_drop_char(&self, d: DropSpeed) -> char {
         match d {
-            DropSpeed::Normal => '●',
+            DropSpeed::Normal(_) => '●',
             _ => ' ',
         }
     }
 
     fn get_render_char(&self, cell: &DropCell) -> char {
-        self.get_drop_char(if !cell.is_empty() && cell.contains(&DropSpeed::Normal) {
-            DropSpeed::Normal
-        } else {
-            DropSpeed::None
-        })
+        self.get_drop_char(
+            if !cell.is_empty() && cell.contains(&DropSpeed::Normal(0)) {
+                DropSpeed::Normal(0)
+            } else {
+                DropSpeed::None
+            },
+        )
     }
 }
 

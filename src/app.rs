@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell, time::SystemTime, fmt::Display};
+use std::{cell::RefCell, fmt::Display, rc::Rc, time::SystemTime};
 
 use anyhow::Result;
 use chrono::{DateTime, Local, Timelike};
@@ -39,6 +39,27 @@ impl Display for Mode {
         };
 
         s.fmt(f)
+    }
+}
+
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
+pub enum WindMode {
+    #[default]
+    Random,
+    Disable,
+    OnlyRight,
+    OnlyLeft,
+}
+
+impl WindMode {
+    pub fn from_str(s: &str) -> Result<Self, String> {
+        match s {
+            "random" => Ok(WindMode::Random),
+            "disable" => Ok(WindMode::Disable),
+            "only-right" => Ok(WindMode::OnlyRight),
+            "only-left" => Ok(WindMode::OnlyLeft),
+            _ => Err(String::from("Invalid parameter, only accept random, disable, only-right or only-left.")),
+        }
     }
 }
 
@@ -96,6 +117,7 @@ pub struct State {
     pub timer: Timer,
     pub mode: Mode,
     pub wind: Wind,
+    pub wind_mode: WindMode,
     buf_line: Vec<DropSpeed>,
     ticks: u8,
     rng: SmallRng,
@@ -104,7 +126,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(size: Rect, mode: Mode, threshold: u64, timer_color: Color) -> Self {
+    pub fn new(size: Rect, mode: Mode, threshold: u64, timer_color: Color, wind_mode: WindMode) -> Self {
         let (buf, buf_line) = Self::init_buf(size);
 
         State {
@@ -119,6 +141,7 @@ impl State {
             threshold,
             mode,
             wind: Wind::None,
+            wind_mode,
             seed: 0,
         }
     }
@@ -163,9 +186,22 @@ impl State {
             return;
         }
 
+        if self.wind_mode == WindMode::Disable {
+            self.wind = Wind::None;
+            return;
+        }
+
+        if self.wind_mode == WindMode::OnlyLeft {
+            self.wind = Wind::Left(255);
+        }
+
+        if self.wind_mode == WindMode::OnlyRight {
+            self.wind = Wind::Right(255);
+        }
+
         self.wind = self.wind.tick();
 
-        if self.wind == Wind::None {
+        if self.wind == Wind::None && self.wind_mode == WindMode::Random {
             if self.seed % 2024 == 0 {
                 self.wind = Wind::Left(255);
             } else if self.seed % 123 == 0 {
@@ -332,7 +368,8 @@ impl App {
             terminal.size()?,
             args.mode,
             args.level as u64,
-            args.timer_color);
+            args.timer_color,
+            args.wind);
 
         Ok(Self {
             terminal,

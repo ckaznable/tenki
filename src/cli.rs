@@ -3,7 +3,7 @@ use std::str::FromStr;
 use clap::Parser;
 use clap_num::number_range;
 use ratatui::style::Color;
-use crate::app::Mode;
+use crate::app::{Mode, WindMode};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -21,6 +21,10 @@ pub struct Args {
     /// color of the effect. [red, green, blue, yellow, cyan, magenta, white, black]
     #[arg(long, value_parser = Color::from_str, default_value = "white")]
     pub timer_color: Color,
+
+    /// wind mode. [random, disable, only-right, only-left]
+    #[arg(long, value_parser = WindMode::from_str, default_value = "random")]
+    pub wind: WindMode,
 }
 
 fn fps_range(s: &str) -> Result<u8, String> {

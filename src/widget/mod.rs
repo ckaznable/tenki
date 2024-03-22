@@ -1,6 +1,6 @@
 use ratatui::{layout::Rect, buffer::Buffer, style::Color};
 
-use crate::app::{DropSpeed, DropColumn, DropCell};
+use crate::state::{DropCell, DropColumn, DropSpeed};
 
 pub mod timer;
 pub mod rain;

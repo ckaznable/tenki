@@ -1,6 +1,6 @@
 use ratatui::{widgets::Widget, buffer::Buffer, layout::Rect, style::Color};
 
-use crate::app::{DropColumn, DropSpeed, Wind};
+use crate::state::{DropColumn, DropSpeed, Wind};
 
 use super::BackgroundWidget;
 

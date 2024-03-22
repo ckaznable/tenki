@@ -1,6 +1,6 @@
 use ratatui::Frame;
 
-use crate::{app::{State, Mode}, widget::{rain::Rain, timer::Timer, snow::Snow}};
+use crate::{state::{State, Mode}, widget::{rain::Rain, timer::Timer, snow::Snow}};
 
 pub fn ui(f: &mut Frame, state: &mut State) {
     let area = f.size();

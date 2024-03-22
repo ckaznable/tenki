@@ -3,7 +3,8 @@ use std::str::FromStr;
 use clap::Parser;
 use clap_num::number_range;
 use ratatui::style::Color;
-use crate::app::{Mode, WindMode};
+
+use crate::state::{Mode, WindMode};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

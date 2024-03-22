@@ -1,5 +1,6 @@
 mod app;
 mod cli;
+mod state;
 mod tui;
 mod ui;
 mod util;

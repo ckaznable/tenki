@@ -84,7 +84,7 @@ static ASCII_9: [u8; 25] = [
     1, 1, 1, 1, 1,
 ];
 
-pub struct Timer(pub crate::app::Timer);
+pub struct Timer(pub crate::state::Timer);
 
 impl Timer {
     fn render_colon(area: Rect, color: Color, buf: &mut Buffer) {

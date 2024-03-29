@@ -43,13 +43,13 @@ pub enum WindMode {
 }
 
 impl WindMode {
-    pub fn from_str(s: &str) -> Result<Self, String> {
+    pub fn from_str(s: &str) -> Result<Self, &'static str> {
         match s {
             "random" => Ok(WindMode::Random),
             "disable" => Ok(WindMode::Disable),
             "only-right" => Ok(WindMode::OnlyRight),
             "only-left" => Ok(WindMode::OnlyLeft),
-            _ => Err(String::from("Invalid parameter, only accept random, disable, only-right or only-left.")),
+            _ => Err("Invalid parameter, only accept random, disable, only-right or only-left."),
         }
     }
 }
@@ -270,7 +270,6 @@ impl State {
                     .get_mut(i)
                     .unwrap()
                     .try_borrow_mut()
-                    .ok()
                     .unwrap()
                     .get_mut(0) {
 

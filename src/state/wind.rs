@@ -50,16 +50,6 @@ impl WindState {
             ..Default::default()
         }
     }
-
-    pub fn frame(mut self, f: FrameCount) -> Self {
-        self.frame = f;
-        self
-    }
-
-    pub fn dirction(mut self, d: WindDirection) -> Self {
-        self.direction = d;
-        self
-    }
 }
 
 impl EachFrameImpl for WindState {

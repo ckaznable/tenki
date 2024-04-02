@@ -13,21 +13,6 @@ impl Timer {
     pub fn new() -> Self {
         Self::default()
     }
-
-    pub fn hours(mut self, h: u8) -> Self {
-        self.hours = h;
-        self
-    }
-
-    pub fn minutes(mut self, m: u8) -> Self {
-        self.minutes = m;
-        self
-    }
-
-    pub fn seconds(mut self, s: u8) -> Self {
-        self.seconds = s;
-        self
-    }
 }
 
 impl Default for Timer {

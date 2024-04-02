@@ -1,15 +1,17 @@
 use ratatui::Frame;
+use crate::state::{EachFrameImpl, Mode, State};
+use crate::cli::Args;
 
-use crate::{state::{State, Mode}, widget::{rain::Rain, timer::Timer, snow::Snow}};
+use crate::widget::{rain::Rain, snow::Snow, timer::Timer};
 
-pub fn ui(f: &mut Frame, state: &mut State) {
+pub fn ui<T: EachFrameImpl>(f: &mut Frame, state: &mut State<T>, args: Args) {
     let area = f.size();
 
-    match state.mode {
-        Mode::Rain => f.render_widget(Rain::new(&state.buf, state.wind), area),
-        Mode::Snow => f.render_widget(Snow::new(&state.buf), area),
+    match args.mode {
+        Mode::Rain => f.render_widget(Rain::new(&state.rb.buf, crate::state::wind::WindDirection::None), area),
+        Mode::Snow => f.render_widget(Snow::new(&state.rb.buf), area),
+        _ => (),
     };
 
-    f.render_widget(Timer(state.timer), area);
+    f.render_widget(Timer(state.timer, args.timer_color), area);
 }
-

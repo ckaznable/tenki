@@ -84,7 +84,7 @@ static ASCII_9: [u8; 25] = [
     1, 1, 1, 1, 1,
 ];
 
-pub struct Timer(pub crate::state::Timer);
+pub struct Timer(pub crate::state::timer::Timer, pub Color);
 
 impl Timer {
     fn render_colon(area: Rect, color: Color, buf: &mut Buffer) {
@@ -160,11 +160,11 @@ impl Widget for Timer {
         )
         .areas(center_area);
 
-        Self::render_decimal(self.0.hours, hours, self.0.color, buf);
-        Self::render_colon(colon_left, self.0.color, buf);
-        Self::render_decimal(self.0.minutes, minutes, self.0.color, buf);
-        Self::render_colon(colon_right, self.0.color, buf);
-        Self::render_decimal(self.0.seconds, seconds, self.0.color , buf);
+        Self::render_decimal(self.0.hours, hours, self.1, buf);
+        Self::render_colon(colon_left, self.1, buf);
+        Self::render_decimal(self.0.minutes, minutes, self.1, buf);
+        Self::render_colon(colon_right, self.1, buf);
+        Self::render_decimal(self.0.seconds, seconds, self.1 , buf);
     }
 }
 

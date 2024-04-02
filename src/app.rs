@@ -1,23 +1,29 @@
 use anyhow::Result;
 use crossterm::{
     cursor,
-    event::{DisableMouseCapture, KeyEvent, KeyCode},
+    event::{DisableMouseCapture, KeyCode, KeyEvent},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 
-use crate::{cli::Args, state::State, tui::{Event, Tui}, ui::ui};
+use crate::{
+    cli::Args,
+    state::{EachFrameImpl, State},
+    tui::{Event, Tui},
+    ui::ui,
+};
 
-pub struct App {
+pub struct App<T: EachFrameImpl> {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     tui: Tui,
-    state: State,
+    state: State<T>,
     should_quit: bool,
+    args: Args,
 }
 
-impl App {
-    pub fn new(args: Args) -> Result<Self> {
+impl<T: EachFrameImpl> App<T> {
+    pub fn new(args: Args, weather: T) -> Result<Self> {
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = std::io::stdout();
@@ -25,16 +31,12 @@ impl App {
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(
-            terminal.size()?,
-            args.mode,
-            args.level as u64,
-            args.timer_color,
-            args.wind);
+        let state = State::new(terminal.size()?, weather);
 
         Ok(Self {
             terminal,
             state,
+            args,
             tui: Tui::new(args.fps as f64)?,
             should_quit: false,
         })
@@ -48,8 +50,7 @@ impl App {
             if let Some(event) = self.tui.next().await {
                 match event {
                     Init => (),
-                    Quit => self.should_quit = true,
-                    Error => self.should_quit = true,
+                    Quit | Error => self.should_quit = true,
                     Render => self.state.tick(),
                     Key(key) => self.handle_keyboard(key),
                     Timer => self.state.tick_timer(),
@@ -61,8 +62,8 @@ impl App {
                 break;
             }
 
-            self.terminal.draw(|f| ui(f, &mut self.state))?;
-        };
+            self.terminal.draw(|f| ui(f, &mut self.state, self.args))?;
+        }
 
         Ok(())
     }
@@ -75,7 +76,7 @@ impl App {
     }
 }
 
-impl Drop for App {
+impl<T: EachFrameImpl> Drop for App<T> {
     fn drop(&mut self) {
         // restore terminal
         if crossterm::terminal::is_raw_mode_enabled().unwrap() {

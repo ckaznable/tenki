@@ -4,9 +4,9 @@ use clap::Parser;
 use clap_num::number_range;
 use ratatui::style::Color;
 
-use crate::state::{Mode, WindMode};
+use crate::state::{wind::WindMode, Mode};
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Copy)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     #[arg(long, default_value_t = Mode::Rain)]

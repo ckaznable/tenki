@@ -1,8 +1,8 @@
-use super::{buffer::RenderBuffer, DropCell, DropColumn, DropSpeed, DroppingMode, EachFrameImpl};
+use super::{buffer::RenderBuffer, DropCell, DropColumn, DropSpeed, Mode, EachFrameImpl};
 
 pub struct DroppingState {
-    threshold: u64,
-    mode: DroppingMode,
+    pub threshold: u64,
+    pub mode: Mode,
 }
 
 impl DroppingState {
@@ -45,7 +45,7 @@ impl DroppingState {
             });
     }
 
-    fn drop(col: &mut DropColumn, ticks: u8, mode: DroppingMode) {
+    fn drop(col: &mut DropColumn, ticks: u8, mode: Mode) {
         let len = col.borrow().len();
 
         for col_index in 0..len {

@@ -15,6 +15,8 @@ pub mod dropping;
 pub mod timer;
 pub mod wind;
 
+const SEED_BUF_SIZE: usize = 1024;
+
 pub type DropCell = ArrayVec<[DropSpeed; 3]>;
 pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
@@ -83,6 +85,8 @@ pub struct State<T> {
     frame: u8,
     rng: SmallRng,
     seed: u64,
+    seed_buf: ArrayVec<[u64; SEED_BUF_SIZE]>,
+    seed_buf_index: usize,
 }
 
 impl<T: EachFrameImpl> State<T> {
@@ -93,6 +97,8 @@ impl<T: EachFrameImpl> State<T> {
             frame: 0,
             timer: Timer::default(),
             seed: 0,
+            seed_buf: ArrayVec::<[u64; SEED_BUF_SIZE]>::new(),
+            seed_buf_index: 0,
             weather,
         }
     }
@@ -112,8 +118,19 @@ impl<T: EachFrameImpl> State<T> {
 
     pub fn tick(&mut self) {
         self.frame = if self.frame > 240 { 0 } else { self.frame.saturating_add(1) };
-        self.seed = self.rng.next_u64();
+        self.seed = self.get_seed();
         self.weather.on_frame(&mut self.rb, self.seed, self.frame);
+    }
+
+    fn get_seed(&mut self) -> u64 {
+        if self.seed_buf.len() == SEED_BUF_SIZE {
+            self.seed_buf_index = if self.seed_buf_index >= SEED_BUF_SIZE { 0 } else { self.seed_buf_index.saturating_add(1) };
+            return if let Some(s) = self.seed_buf.get(self.seed_buf_index) { *s } else { self.rng.next_u64() };
+        }
+
+        let seed = self.rng.next_u64();
+        self.seed_buf.push(seed);
+        seed
     }
 }
 

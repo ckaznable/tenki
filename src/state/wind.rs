@@ -72,8 +72,12 @@ impl EachFrameImpl for WindState {
             } else if seed % 123 == 0 {
                 WindDirection::Right
             } else {
-                return
+                WindDirection::None
             }
+        }
+
+        if self.direction == WindDirection::None {
+            return;
         }
 
         self.frame = self.frame.saturating_sub(1);

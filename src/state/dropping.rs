@@ -1,7 +1,7 @@
 use super::{buffer::RenderBuffer, DropCell, DropColumn, DropSpeed, Mode, EachFrameImpl};
 
 pub struct DroppingState {
-    pub threshold: u64,
+    pub threshold: u16,
     pub mode: Mode,
 }
 
@@ -93,8 +93,8 @@ impl DroppingState {
     }
 
     #[inline]
-    fn get_drop_speed(num: u64, threshold: u64) -> DropSpeed {
-        match num % threshold {
+    fn get_drop_speed(num: u64, threshold: u16) -> DropSpeed {
+        match num % threshold as u64 {
             0 => DropSpeed::Normal,
             1 => DropSpeed::Fast,
             2 => DropSpeed::Slow,

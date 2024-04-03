@@ -33,8 +33,8 @@ type FrameCount = usize;
 
 #[derive(Clone, Copy, Default)]
 pub struct WindState {
-    mode: WindMode,
-    direction: WindDirection,
+    pub mode: WindMode,
+    pub direction: WindDirection,
     frame: FrameCount,
 }
 

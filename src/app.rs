@@ -11,10 +11,10 @@ use crate::{
     cli::Args,
     state::{EachFrameImpl, State},
     tui::{Event, Tui},
-    ui::ui,
+    ui::ui, widget::AsWeatherWidget,
 };
 
-pub struct App<T: EachFrameImpl> {
+pub struct App<T> {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     tui: Tui,
     state: State<T>,
@@ -22,7 +22,7 @@ pub struct App<T: EachFrameImpl> {
     args: Args,
 }
 
-impl<T: EachFrameImpl> App<T> {
+impl<T: EachFrameImpl + AsWeatherWidget> App<T> {
     pub fn new(args: Args, weather: T) -> Result<Self> {
         // setup terminal
         enable_raw_mode()?;
@@ -76,7 +76,7 @@ impl<T: EachFrameImpl> App<T> {
     }
 }
 
-impl<T: EachFrameImpl> Drop for App<T> {
+impl<T> Drop for App<T> {
     fn drop(&mut self) {
         // restore terminal
         if crossterm::terminal::is_raw_mode_enabled().unwrap() {

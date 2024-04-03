@@ -1,30 +1,25 @@
-use ratatui::{buffer::Buffer, layout::Rect, style::Color, widgets::Widget};
+use ratatui::style::Color;
 
-use crate::state::{wind::WindDirection, DropColumn, DropSpeed};
+use crate::state::{wind::WindDirection, DropSpeed};
 
-use super::BackgroundWidget;
+use super::WeatherWidgetImpl;
 
-pub struct Rain<'a> {
-    buf: &'a Vec<DropColumn>,
+pub struct Rain {
     wind: WindDirection,
 }
 
-impl<'a> Rain<'a> {
-    pub fn new(buf: &'a Vec<DropColumn>, wind: WindDirection) -> Self {
-        Self { buf, wind }
+impl Rain {
+    pub fn new(wind: WindDirection) -> Self {
+        Self { wind }
     }
 }
 
-impl<'a> BackgroundWidget for Rain<'a> {
-    fn buf(&self) -> &Vec<DropColumn> {
-        self.buf
-    }
-
-    fn get_drop_color(&self) -> Color {
+impl WeatherWidgetImpl for Rain {
+    fn get_color(&self) -> Color {
         Color::Rgb(150, 150, 150)
     }
 
-    fn get_drop_char(&self, d: DropSpeed) -> char {
+    fn get_char(&self, d: DropSpeed) -> char {
         use DropSpeed::*;
         match d {
             Fast => '.',
@@ -39,8 +34,3 @@ impl<'a> BackgroundWidget for Rain<'a> {
     }
 }
 
-impl<'a> Widget for Rain<'a> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        self.render_background(area, buf)
-    }
-}

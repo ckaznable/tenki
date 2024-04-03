@@ -1,5 +1,7 @@
-use crate::state::{
-    buffer::RenderBuffer, dropping::DroppingState, wind::{WindMode, WindState}, EachFrameImpl, Mode
+use crate::{
+    cli::Args,
+    state::{buffer::RenderBuffer, dropping::DroppingState, wind::WindState, EachFrameImpl},
+    widget::{rain::Rain, AsWeatherWidget},
 };
 
 pub struct GeneralDropping {
@@ -8,13 +10,13 @@ pub struct GeneralDropping {
 }
 
 impl GeneralDropping {
-    pub fn new() -> Self {
+    pub fn new(args: Args) -> Self {
         Self {
-            wind: WindState::new(WindMode::default()),
+            wind: WindState::new(args.wind),
             dropping: DroppingState {
-                threshold: 50,
-                mode: Mode::default(),
-            }
+                threshold: args.level,
+                mode: args.mode,
+            },
         }
     }
 }
@@ -26,3 +28,9 @@ impl EachFrameImpl for GeneralDropping {
     }
 }
 
+impl AsWeatherWidget for GeneralDropping {
+    type Weather = Rain;
+    fn as_weather_widget(&self) -> Self::Weather {
+        Rain::new(self.wind.direction)
+    }
+}

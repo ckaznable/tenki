@@ -76,13 +76,13 @@ impl Mode {
     }
 }
 
-pub struct State<T: EachFrameImpl> {
+pub struct State<T> {
     pub rb: RenderBuffer,
     pub timer: Timer,
+    pub weather: T,
     frame: u8,
     rng: SmallRng,
     seed: u64,
-    weather: T,
 }
 
 impl<T: EachFrameImpl> State<T> {

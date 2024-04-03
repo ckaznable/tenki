@@ -16,7 +16,7 @@ use weather::Weather;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let mut app = App::new(args, Weather::from(state::Mode::Rain))?;
+    let mut app = App::new(args, Weather::from(args))?;
     app.run().await?;
     Ok(())
 }

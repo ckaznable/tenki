@@ -1,5 +1,9 @@
 use super::{buffer::RenderBuffer, EachFrameImpl};
 
+pub trait WindImpl {
+    fn direction(&self) -> WindDirection;
+}
+
 #[derive(Clone, Copy, Default, Eq, PartialEq)]
 pub enum WindMode {
     #[default]
@@ -38,16 +42,26 @@ pub struct WindState {
     frame: FrameCount,
 }
 
+impl WindImpl for WindState {
+    fn direction(&self) -> WindDirection {
+        self.direction
+    }
+}
+
 impl WindState {
     pub fn new(mode: WindMode) -> Self {
         Self {
             mode,
-            direction: match mode {
-                WindMode::OnlyRight => WindDirection::Right,
-                WindMode::OnlyLeft => WindDirection::Left,
-                _ => WindDirection::None
-            },
+            direction: Self::direction_from_mode(mode),
             ..Default::default()
+        }
+    }
+
+    pub fn direction_from_mode(mode: WindMode) -> WindDirection {
+        match mode {
+            WindMode::OnlyRight => WindDirection::Right,
+            WindMode::OnlyLeft => WindDirection::Left,
+            _ => WindDirection::None
         }
     }
 }

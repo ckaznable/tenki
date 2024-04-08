@@ -22,7 +22,7 @@ pub trait EachFrameImpl {
     fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u8);
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub enum DropSpeed {
     Fast,
     Normal,
@@ -31,7 +31,7 @@ pub enum DropSpeed {
     None,
 }
 
-#[derive(Copy, Clone, Default, ValueEnum)]
+#[derive(Copy, Clone, Default, ValueEnum, PartialEq, Eq)]
 pub enum Mode {
     #[default]
     Rain,
@@ -68,7 +68,7 @@ impl Mode {
             Snow => match s {
                 Fast => 2,
                 Normal => 4,
-                Slow => 8,
+                Slow => 6,
                 _ => 0,
             },
             _ => 0

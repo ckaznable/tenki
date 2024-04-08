@@ -8,10 +8,7 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 
 use crate::{
-    cli::Args,
-    state::{EachFrameImpl, State},
-    tui::{Event, Tui},
-    ui::ui, widget::AsWeatherWidget,
+    cli::Args, state::{EachFrameImpl, State}, tui::{Event, Tui}, ui::ui, widget::AsWeatherWidget
 };
 
 pub struct App<T> {
@@ -22,7 +19,10 @@ pub struct App<T> {
     args: Args,
 }
 
-impl<T: EachFrameImpl + AsWeatherWidget> App<T> {
+impl<T> App<T>
+where
+    T: EachFrameImpl + AsWeatherWidget,
+{
     pub fn new(args: Args, weather: T) -> Result<Self> {
         // setup terminal
         enable_raw_mode()?;

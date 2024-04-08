@@ -1,6 +1,8 @@
-use crate::{cli::Args, state::{EachFrameImpl, Mode}, widget::AsWeatherWidget};
-
-use self::dropping::GeneralDropping;
+use crate::{
+    cli::Args,
+    state::{EachFrameImpl, Mode},
+    weather::dropping::GeneralDropping, widget::AsWeatherWidget,
+};
 
 pub mod dropping;
 
@@ -11,9 +13,7 @@ impl Weather {
         use Mode::*;
         match args.mode {
             Rain | Snow => GeneralDropping::new(args),
-            Meteor => todo!(),
-            Star => todo!(),
+            _ => panic!("has not been implemented yet for this mode"),
         }
     }
 }
-

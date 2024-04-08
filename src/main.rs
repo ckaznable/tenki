@@ -1,10 +1,10 @@
 mod app;
 mod cli;
 mod state;
-mod weather;
 mod tui;
 mod ui;
 mod util;
+mod weather;
 mod widget;
 
 use anyhow::Result;
@@ -20,4 +20,3 @@ async fn main() -> Result<()> {
     app.run().await?;
     Ok(())
 }
-

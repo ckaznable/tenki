@@ -128,9 +128,9 @@ impl Timer {
                     .enumerate()
                     .for_each(|(x, c)| {
                         if *c > 0 {
-                            buf .get_mut(left + x as u16, top + y as u16)
-                                .set_char(TIMER_CHAR)
-                                .set_fg(color);
+                            buf.get_mut(left + x as u16, top + y as u16)
+                               .set_char(TIMER_CHAR)
+                               .set_fg(color);
                         }
                     })
             });

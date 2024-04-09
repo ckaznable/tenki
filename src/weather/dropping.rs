@@ -1,6 +1,7 @@
 use crate::{
     cli::Args,
-    state::{buffer::RenderBuffer, dropping::DroppingState, wind::WindState, EachFrameImpl, Mode}, widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
+    state::{buffer::RenderBuffer, dropping::DroppingState, wind::WindState, EachFrameImpl, Mode},
+    widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
 };
 
 pub struct GeneralDropping {
@@ -41,4 +42,3 @@ impl AsWeatherWidget for GeneralDropping {
         }
     }
 }
-

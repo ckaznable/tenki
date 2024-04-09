@@ -7,6 +7,7 @@ use ratatui::{
 
 use crate::state::{buffer::RenderBuffer, DropCell, DropSpeed};
 
+pub mod fps;
 pub mod timer;
 pub mod weather;
 

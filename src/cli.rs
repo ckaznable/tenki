@@ -26,6 +26,10 @@ pub struct Args {
     /// wind mode. [random, disable, only-right, only-left]
     #[arg(long, value_parser = WindMode::from_str, default_value = "random")]
     pub wind: WindMode,
+
+    /// show fps at right-top in screen
+    #[arg(long)]
+    pub show_fps: bool,
 }
 
 fn fps_range(s: &str) -> Result<u8, String> {

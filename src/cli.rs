@@ -3,9 +3,10 @@ use std::str::FromStr;
 use clap::Parser;
 use clap_num::number_range;
 use ratatui::style::Color;
-use crate::app::{Mode, WindMode};
 
-#[derive(Parser)]
+use crate::state::{wind::WindMode, Mode};
+
+#[derive(Parser, Clone, Copy)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     #[arg(long, default_value_t = Mode::Rain)]

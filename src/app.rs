@@ -11,12 +11,19 @@ use crate::{
     cli::Args, state::{EachFrameImpl, State}, tui::{Event, Tui}, ui::ui, widget::AsWeatherWidget
 };
 
+#[derive(Copy, Clone)]
+pub struct AppRuntimeInfo {
+    pub fps: usize,
+}
+
 pub struct App<T> {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     tui: Tui,
     state: State<T>,
     should_quit: bool,
     args: Args,
+    frame_in_second: usize,
+    runtime_info: AppRuntimeInfo,
 }
 
 impl<T> App<T>
@@ -39,6 +46,8 @@ where
             args,
             tui: Tui::new(args.fps as f64)?,
             should_quit: false,
+            frame_in_second: 0,
+            runtime_info: AppRuntimeInfo { fps: 0 },
         })
     }
 
@@ -51,9 +60,9 @@ where
                 match event {
                     Init => (),
                     Quit | Error => self.should_quit = true,
-                    Render => self.state.tick(),
+                    Render => self.on_render(),
                     Key(key) => self.handle_keyboard(key),
-                    Timer => self.state.tick_timer(),
+                    Timer => self.on_timer(),
                     Resize(columns, rows) => self.state.on_resize(columns, rows),
                 };
             };
@@ -62,7 +71,7 @@ where
                 break;
             }
 
-            self.terminal.draw(|f| ui(f, &mut self.state, self.args))?;
+            self.terminal.draw(|f| ui(f, &mut self.state, self.args, self.runtime_info))?;
         }
 
         Ok(())
@@ -73,6 +82,17 @@ where
             KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => self.should_quit = true,
             _ => {}
         }
+    }
+
+    fn on_render(&mut self) {
+        self.state.tick();
+        self.frame_in_second = self.frame_in_second.saturating_add(1);
+    }
+
+    fn on_timer(&mut self) {
+        self.state.tick_timer();
+        self.runtime_info.fps = self.frame_in_second;
+        self.frame_in_second = 0;
     }
 }
 

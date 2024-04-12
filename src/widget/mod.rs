@@ -5,14 +5,14 @@ use ratatui::{
     widgets::StatefulWidget,
 };
 
-use crate::state::{buffer::RenderBuffer, DropCell, DropSpeed};
+use crate::state::{buffer::RenderBuffer, DropCell, DropType};
 
 pub mod fps;
 pub mod timer;
 pub mod weather;
 
 pub trait WeatherWidgetImpl {
-    fn get_char(&self, _: DropSpeed) -> char;
+    fn get_char(&self, _: DropType) -> char;
     fn get_render_char(&self, cell: &DropCell) -> char;
     fn get_color(&self) -> Color;
 

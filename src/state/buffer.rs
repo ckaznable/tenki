@@ -5,11 +5,11 @@ use ratatui::layout::Rect;
 use tinyvec::ArrayVec;
 
 use super::DropColumn;
-use super::DropSpeed;
+use super::DropType;
 
 pub struct RenderBuffer {
     pub buf: Vec<DropColumn>,
-    pub line: Vec<DropSpeed>,
+    pub line: Vec<DropType>,
 }
 
 impl RenderBuffer {
@@ -18,7 +18,7 @@ impl RenderBuffer {
         for _ in 0..size.width {
             let mut column = Vec::with_capacity(size.height as usize);
             for _ in 0..size.height {
-                column.push(ArrayVec::<[DropSpeed; 3]>::default());
+                column.push(ArrayVec::<[DropType; 3]>::default());
             }
 
             buf.push(Rc::new(RefCell::new(column)));

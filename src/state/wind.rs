@@ -23,6 +23,13 @@ impl WindMode {
             _ => Err("Invalid parameter, only accept random, disable, only-right or only-left."),
         }
     }
+
+    pub fn without_random(self) -> Self {
+        match self {
+            WindMode::Random => Self::default(),
+            other => other,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq)]

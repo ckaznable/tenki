@@ -1,6 +1,6 @@
 use ratatui::style::Color;
 
-use crate::state::{wind::WindDirection, DropCell, DropSpeed};
+use crate::state::{wind::WindDirection, DropCell, DropType};
 
 use super::WeatherWidgetImpl;
 
@@ -21,8 +21,8 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
         }
     }
 
-    fn get_char(&self, d: DropSpeed) -> char {
-        use DropSpeed::*;
+    fn get_char(&self, d: DropType) -> char {
+        use DropType::*;
         match self {
             Self::Rain(wind) => match d {
                 Fast => '.',
@@ -35,7 +35,7 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
                 _ => ' ',
             },
             Self::Snow => match d {
-                DropSpeed::Normal => '●',
+                DropType::Normal => '●',
                 _ => ' ',
             },
             _ => ' ',
@@ -44,18 +44,18 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
 
     fn get_render_char(&self, cell: &DropCell) -> char {
         match self {
-            Self::Snow => self.get_char(if !cell.is_empty() && cell.contains(&DropSpeed::Normal) {
-                DropSpeed::Normal
+            Self::Snow => self.get_char(if !cell.is_empty() && cell.contains(&DropType::Normal) {
+                DropType::Normal
             } else {
-                DropSpeed::None
+                DropType::None
             }),
 
-            _ => self.get_char(if cell.contains(&DropSpeed::Slow) {
-                DropSpeed::Slow
+            _ => self.get_char(if cell.contains(&DropType::Slow) {
+                DropType::Slow
             } else if !cell.is_empty() {
                 *cell.first().unwrap()
             } else {
-                DropSpeed::None
+                DropType::None
             }),
         }
     }

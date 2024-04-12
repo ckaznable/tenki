@@ -12,10 +12,11 @@ use self::{
 
 pub mod buffer;
 pub mod dropping;
+pub mod tail;
 pub mod timer;
 pub mod wind;
 
-pub type DropCell = ArrayVec<[DropSpeed; 3]>;
+pub type DropCell = ArrayVec<[DropType; 3]>;
 pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
 
 pub trait EachFrameImpl {
@@ -23,7 +24,7 @@ pub trait EachFrameImpl {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
-pub enum DropSpeed {
+pub enum DropType {
     Fast,
     Normal,
     Slow,
@@ -54,8 +55,8 @@ impl Display for Mode {
 }
 
 impl Mode {
-    pub fn get_frame_by_speed(&self, s: DropSpeed) -> u8 {
-        use DropSpeed::*;
+    pub fn get_frame_by_speed(&self, s: DropType) -> u8 {
+        use DropType::*;
         use Mode::*;
 
         match self {

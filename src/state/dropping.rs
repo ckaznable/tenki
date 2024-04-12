@@ -1,4 +1,4 @@
-use super::{buffer::RenderBuffer, DropCell, DropColumn, DropSpeed, Mode, EachFrameImpl};
+use super::{buffer::RenderBuffer, DropCell, DropColumn, DropType, Mode, EachFrameImpl};
 
 pub struct DroppingState {
     pub threshold: u16,
@@ -20,7 +20,7 @@ impl DroppingState {
                 rb.line.push(if seed & (1 << i) != 0 {
                     Self::get_drop_speed(seed.saturating_sub(i), self.threshold)
                 } else {
-                    DropSpeed::None
+                    DropType::None
                 });
             }
         }
@@ -79,8 +79,8 @@ impl DroppingState {
     }
 
     #[inline]
-    fn merge_drop_state(mut cell: DropCell, state: DropSpeed) -> DropCell {
-        if !cell.contains(&state) && state != DropSpeed::None {
+    fn merge_drop_state(mut cell: DropCell, state: DropType) -> DropCell {
+        if !cell.contains(&state) && state != DropType::None {
             cell.push(state);
         };
 
@@ -88,17 +88,17 @@ impl DroppingState {
     }
 
     #[inline]
-    fn remove_drop_state(cell: DropCell, state: DropSpeed) -> DropCell {
+    fn remove_drop_state(cell: DropCell, state: DropType) -> DropCell {
         cell.into_iter().filter(|c| *c != state).collect()
     }
 
     #[inline]
-    fn get_drop_speed(num: u64, threshold: u16) -> DropSpeed {
+    fn get_drop_speed(num: u64, threshold: u16) -> DropType {
         match num % threshold as u64 {
-            0 => DropSpeed::Normal,
-            1 => DropSpeed::Fast,
-            2 => DropSpeed::Slow,
-            _ => DropSpeed::None,
+            0 => DropType::Normal,
+            1 => DropType::Fast,
+            2 => DropType::Slow,
+            _ => DropType::None,
         }
     }
 }

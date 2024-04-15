@@ -75,7 +75,7 @@ impl EachFrameImpl for WindState {
             _ => self.direction,
         };
 
-        if self.mode != WindMode::Random {
+        if self.mode == WindMode::Disable {
             return;
         }
 

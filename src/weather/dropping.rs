@@ -6,6 +6,9 @@ use crate::{
 
 use super::WeatherImpl;
 
+const DEF_LEVEL: u16 = 50;
+const DEF_TAIL_LEVEL: u16 = 500;
+
 pub struct GeneralDropping {
     wind: WindState,
     dropping: DroppingState,
@@ -16,7 +19,7 @@ impl GeneralDropping {
         Self {
             wind: WindState::new(args.wind),
             dropping: DroppingState {
-                threshold: args.level,
+                threshold: if args.level == 0 { DEF_LEVEL } else { args.level },
                 mode: args.mode,
             },
         }
@@ -57,7 +60,7 @@ impl TailDropping {
             wind: WindState::new(args.wind.without_random()),
             tail: TailState::new(args.wind.into()),
             dropping: DroppingState {
-                threshold: args.level,
+                threshold: if args.level == 0 { DEF_TAIL_LEVEL } else { args.level },
                 mode: args.mode,
             },
         }
@@ -80,7 +83,7 @@ impl AsWeatherWidget for TailDropping {
     fn as_weather_widget(&self) -> Self::Weather {
         use Mode::*;
         match self.dropping.mode {
-            Meteor => GeneralWeatherWidget::Rain(self.wind.direction),
+            Meteor => GeneralWeatherWidget::Meteor(self.tail.mode),
             _ => panic!("has not been implemented yet"),
         }
     }

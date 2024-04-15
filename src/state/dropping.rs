@@ -1,4 +1,4 @@
-use super::{buffer::RenderBuffer, DropCell, DropColumn, DropType, Mode, EachFrameImpl};
+use super::{buffer::RenderBuffer, Cell, Column, CellType, Mode, EachFrameImpl};
 
 pub struct DroppingState {
     pub threshold: u16,
@@ -20,7 +20,7 @@ impl DroppingState {
                 rb.line.push(if seed & (1 << i) != 0 {
                     Self::get_drop_speed(seed.saturating_sub(i), self.threshold)
                 } else {
-                    DropType::None
+                    CellType::None
                 });
             }
         }
@@ -45,7 +45,7 @@ impl DroppingState {
             });
     }
 
-    fn drop(col: &mut DropColumn, ticks: u8, mode: Mode) {
+    fn drop(col: &mut Column, ticks: u8, mode: Mode) {
         let len = col.borrow().len();
 
         for col_index in 0..len {
@@ -68,7 +68,7 @@ impl DroppingState {
     }
 
     #[inline]
-    fn clean_latest_drop(col: &mut DropColumn) {
+    fn clean_latest_drop(col: &mut Column) {
         let len = col.borrow().len();
         if len > 0 {
             let mut col = col.try_borrow_mut().unwrap();
@@ -79,8 +79,8 @@ impl DroppingState {
     }
 
     #[inline]
-    fn merge_drop_state(mut cell: DropCell, state: DropType) -> DropCell {
-        if !cell.contains(&state) && state != DropType::None {
+    fn merge_drop_state(mut cell: Cell, state: CellType) -> Cell {
+        if !cell.contains(&state) && state != CellType::None {
             cell.push(state);
         };
 
@@ -88,17 +88,17 @@ impl DroppingState {
     }
 
     #[inline]
-    fn remove_drop_state(cell: DropCell, state: DropType) -> DropCell {
+    fn remove_drop_state(cell: Cell, state: CellType) -> Cell {
         cell.into_iter().filter(|c| *c != state).collect()
     }
 
     #[inline]
-    fn get_drop_speed(num: u64, threshold: u16) -> DropType {
+    fn get_drop_speed(num: u64, threshold: u16) -> CellType {
         match num % threshold as u64 {
-            0 => DropType::Normal,
-            1 => DropType::Fast,
-            2 => DropType::Slow,
-            _ => DropType::None,
+            0 => CellType::Normal,
+            1 => CellType::Fast,
+            2 => CellType::Slow,
+            _ => CellType::None,
         }
     }
 }

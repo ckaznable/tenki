@@ -14,9 +14,14 @@ pub enum GeneralWeatherWidget {
 }
 
 impl WeatherWidgetImpl for GeneralWeatherWidget {
-    fn get_color(&self) -> Color {
+    fn get_color(&self, cell: CellType) -> Color {
+        use CellType::*;
         match self {
             Self::Rain(_) => Color::Rgb(150, 150, 150),
+            Self::Meteor(_) => match cell {
+                Fast | Normal | Slow => Color::Yellow,
+                _ => Color::Reset,
+            }
             _ => Color::Reset,
         }
     }
@@ -51,21 +56,21 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
         }
     }
 
-    fn get_render_char(&self, cell: &Cell) -> char {
+    fn get_render_cell_type(&self, cell: &Cell) -> CellType {
         match self {
-            Self::Snow => self.get_char(if !cell.is_empty() && cell.contains(&CellType::Normal) {
+            Self::Snow => if !cell.is_empty() && cell.contains(&CellType::Normal) {
                 CellType::Normal
             } else {
                 CellType::None
-            }),
+            },
 
-            _ => self.get_char(if cell.contains(&CellType::Slow) {
+            _ => if cell.contains(&CellType::Slow) {
                 CellType::Slow
             } else if !cell.is_empty() {
                 *cell.first().unwrap()
             } else {
                 CellType::None
-            }),
+            },
         }
     }
 }

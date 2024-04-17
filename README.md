@@ -43,11 +43,11 @@ paru -S tenki
 Usage: tenki [OPTIONS]
 
 Options:
-      --mode <MODE>    [default: rain] [rain, snow]
+      --mode <MODE>    [default: rain] [rain, snow, meteor]
       --fps <FPS>      [default: 60] [1-60]
       --show-fps       Show fps at right-top in screen
       --timer-color    <COLOR>  Timer color [default: white] [red, green, blue, yellow, cyan, magenta, white, black]
-      --wind <WIND>    Decide on the direction of the rain/snow [defualt: random] [random, disable, only-right, only-left]
+      --wind <WIND>    Decide on the direction of the rain/snow [defualt: random] [random, disable, only-right, only-left, right, left]
   -l, --level <LEVEL>  Effect level, The lower, the stronger [default: 50] [4-1000]
   -h, --help           Print help
   -V, --version        Print version

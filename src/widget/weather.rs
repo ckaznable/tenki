@@ -1,6 +1,6 @@
 use ratatui::style::Color;
 
-use crate::state::{wind::WindDirection, DropCell, DropSpeed};
+use crate::state::{tail::TailMode, wind::WindDirection, Cell, CellType};
 
 use super::WeatherWidgetImpl;
 
@@ -9,20 +9,25 @@ use super::WeatherWidgetImpl;
 pub enum GeneralWeatherWidget {
     Rain(WindDirection),
     Snow,
-    Meteor,
+    Meteor(TailMode),
     Star,
 }
 
 impl WeatherWidgetImpl for GeneralWeatherWidget {
-    fn get_color(&self) -> Color {
+    fn get_color(&self, cell: CellType) -> Color {
+        use CellType::*;
         match self {
             Self::Rain(_) => Color::Rgb(150, 150, 150),
+            Self::Meteor(_) => match cell {
+                Fast | Normal | Slow => Color::Yellow,
+                _ => Color::Reset,
+            }
             _ => Color::Reset,
         }
     }
 
-    fn get_char(&self, d: DropSpeed) -> char {
-        use DropSpeed::*;
+    fn get_char(&self, d: CellType) -> char {
+        use CellType::*;
         match self {
             Self::Rain(wind) => match d {
                 Fast => '.',
@@ -31,32 +36,41 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
                     WindDirection::Left => '/',
                     WindDirection::Right => '\\',
                     WindDirection::None => '|',
-                },
+                }
                 _ => ' ',
-            },
+            }
             Self::Snow => match d {
-                DropSpeed::Normal => '●',
+                CellType::Normal => '●',
                 _ => ' ',
-            },
+            }
+            Self::Meteor(tail) => match d {
+                Fast | Normal | Slow => '★',
+                Tail => match tail {
+                    TailMode::Left => '/',
+                    TailMode::Right => '\\',
+                    TailMode::Default => '|',
+                },
+                None => ' ',
+            }
             _ => ' ',
         }
     }
 
-    fn get_render_char(&self, cell: &DropCell) -> char {
+    fn get_render_cell_type(&self, cell: &Cell) -> CellType {
         match self {
-            Self::Snow => self.get_char(if !cell.is_empty() && cell.contains(&DropSpeed::Normal) {
-                DropSpeed::Normal
+            Self::Snow => if !cell.is_empty() && cell.contains(&CellType::Normal) {
+                CellType::Normal
             } else {
-                DropSpeed::None
-            }),
+                CellType::None
+            },
 
-            _ => self.get_char(if cell.contains(&DropSpeed::Slow) {
-                DropSpeed::Slow
+            _ => if cell.contains(&CellType::Slow) {
+                CellType::Slow
             } else if !cell.is_empty() {
                 *cell.first().unwrap()
             } else {
-                DropSpeed::None
-            }),
+                CellType::None
+            },
         }
     }
 }

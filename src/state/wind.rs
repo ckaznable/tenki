@@ -18,9 +18,16 @@ impl WindMode {
         match s {
             "random" => Ok(WindMode::Random),
             "disable" => Ok(WindMode::Disable),
-            "only-right" => Ok(WindMode::OnlyRight),
-            "only-left" => Ok(WindMode::OnlyLeft),
-            _ => Err("Invalid parameter, only accept random, disable, only-right or only-left."),
+            "right" | "only-right" => Ok(WindMode::OnlyRight),
+            "left" | "only-left" => Ok(WindMode::OnlyLeft),
+            _ => Err("Invalid parameter, only accept random, disable, only-right, only-left, right or left."),
+        }
+    }
+
+    pub fn without_random(self) -> Self {
+        match self {
+            WindMode::Random => Self::Disable,
+            other => other,
         }
     }
 }

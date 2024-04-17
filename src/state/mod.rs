@@ -12,23 +12,32 @@ use self::{
 
 pub mod buffer;
 pub mod dropping;
+pub mod tail;
 pub mod timer;
 pub mod wind;
 
-pub type DropCell = ArrayVec<[DropSpeed; 3]>;
-pub type DropColumn = Rc<RefCell<Vec<DropCell>>>;
+pub type Cell = ArrayVec<[CellType; 3]>;
+pub type Column = Rc<RefCell<Vec<Cell>>>;
 
 pub trait EachFrameImpl {
     fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u8);
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
-pub enum DropSpeed {
+pub enum CellType {
     Fast,
     Normal,
     Slow,
+    Tail,
     #[default]
     None,
+}
+
+impl CellType {
+    pub fn is_dropping_cell(&self) -> bool {
+        use CellType::*;
+        matches!(*self, Fast | Normal | Slow)
+    }
 }
 
 #[derive(Copy, Clone, Default, ValueEnum, PartialEq, Eq)]
@@ -54,8 +63,8 @@ impl Display for Mode {
 }
 
 impl Mode {
-    pub fn get_frame_by_speed(&self, s: DropSpeed) -> u8 {
-        use DropSpeed::*;
+    pub fn get_frame_by_speed(&self, s: CellType) -> u8 {
+        use CellType::*;
         use Mode::*;
 
         match self {
@@ -64,13 +73,14 @@ impl Mode {
                 Normal => 2,
                 Slow => 3,
                 _ => 0,
-            },
+            }
             Snow => match s {
                 Fast => 2,
                 Normal => 4,
                 Slow => 6,
                 _ => 0,
-            },
+            }
+            Meteor => 4,
             _ => 0
         }
     }

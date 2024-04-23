@@ -44,7 +44,7 @@ where
             terminal,
             state,
             args,
-            tui: Tui::new(args.fps as f64)?,
+            tui: Tui::new(args.fps as f64, args.tps as f64)?,
             should_quit: false,
             frame_in_second: 0,
             runtime_info: AppRuntimeInfo { fps: 0 },
@@ -60,8 +60,9 @@ where
                 match event {
                     Init => (),
                     Quit | Error => self.should_quit = true,
-                    Render => self.on_render(),
+                    Render => self.on_render()?,
                     Key(key) => self.handle_keyboard(key),
+                    Tick => self.on_tick(),
                     Timer => self.on_timer(),
                     Resize(columns, rows) => self.state.on_resize(columns, rows),
                 };
@@ -70,8 +71,6 @@ where
             if self.should_quit {
                 break;
             }
-
-            self.terminal.draw(|f| ui(f, &mut self.state, self.args, self.runtime_info))?;
         }
 
         Ok(())
@@ -84,9 +83,18 @@ where
         }
     }
 
-    fn on_render(&mut self) {
+    fn on_tick(&mut self) {
         self.state.tick();
         self.frame_in_second = self.frame_in_second.saturating_add(1);
+    }
+
+    fn on_render(&mut self) -> anyhow::Result<()> {
+        if self.args.fps == self.args.tps {
+            self.on_tick()
+        }
+
+        self.terminal.draw(|f| ui(f, &mut self.state, self.args, self.runtime_info))?;
+        Ok(())
     }
 
     fn on_timer(&mut self) {

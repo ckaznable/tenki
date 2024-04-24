@@ -44,7 +44,8 @@ Usage: tenki [OPTIONS]
 
 Options:
       --mode <MODE>    [default: rain] [rain, snow, meteor]
-      --fps <FPS>      [default: 60] [1-60]
+      --fps <FPS>      Frame Per Second [default: 60] [1-240]
+      --tps <TPS>      Tick Per Second [default: 60] [1-240]
       --show-fps       Show fps at right-top in screen
       --timer-color    <COLOR>  Timer color [default: white] [red, green, blue, yellow, cyan, magenta, white, black]
       --wind <WIND>    Decide on the direction of the rain/snow [defualt: random] [random, disable, only-right, only-left, right, left]

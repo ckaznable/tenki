@@ -19,10 +19,7 @@ impl GeneralDropping {
         Self {
             wind: WindState::new(args.wind),
             dropping: DroppingState {
-                threshold: match args.level {
-                    Some(level) => level,
-                    None => DEF_LEVEL,
-                },
+                threshold: args.level.unwrap_or(DEF_LEVEL),
                 mode: args.mode,
             },
         }
@@ -63,10 +60,7 @@ impl TailDropping {
             wind: WindState::new(args.wind.without_random()),
             tail: TailState::new(args.wind.into()),
             dropping: DroppingState {
-                threshold: match args.level {
-                    Some(level) => level,
-                    None => DEF_TAIL_LEVEL,
-                },
+                threshold: args.level.unwrap_or(DEF_TAIL_LEVEL),
                 mode: args.mode,
             },
         }

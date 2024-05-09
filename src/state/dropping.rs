@@ -81,7 +81,7 @@ impl DroppingState {
     #[inline]
     fn merge_drop_state(mut cell: Cell, state: CellType) -> Cell {
         if !cell.contains(&state) && state != CellType::None {
-            cell.push(state);
+            let _ = cell.try_push(state);
         };
 
         cell

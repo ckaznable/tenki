@@ -13,11 +13,11 @@ pub struct Args {
     pub mode: Mode,
 
     /// frame per second
-    #[arg(long, value_parser = process_rate_range, default_value_t = 60)]
+    #[arg(short, long, value_parser = process_rate_range, default_value_t = 60)]
     pub fps: u8,
 
     /// tick per second
-    #[arg(long, value_parser = process_rate_range, default_value_t = 60)]
+    #[arg(short, long, value_parser = process_rate_range, default_value_t = 60)]
     pub tps: u8,
 
     /// effect level, The lower, the stronger [4-1000]

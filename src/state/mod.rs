@@ -7,7 +7,7 @@ use tinyvec::ArrayVec;
 
 use self::{
     buffer::RenderBuffer,
-    timer::Timer,
+    timer::{Timer, TimerRenderMode, TimerState},
 };
 
 pub mod buffer;
@@ -21,6 +21,97 @@ pub type Column = Rc<RefCell<Vec<Cell>>>;
 
 pub trait EachFrameImpl {
     fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u8);
+}
+
+#[derive(Copy, Clone, Default)]
+pub enum Direction {
+    #[default]
+    LeftTop,
+    LeftBottom,
+    RightTop,
+    RightBottom,
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn reflection_h(&self) -> Self {
+        use Direction::*;
+        match *self {
+            LeftTop => LeftBottom,
+            LeftBottom => LeftTop,
+            RightTop => RightBottom,
+            RightBottom => RightTop,
+            Up => Down,
+            Down => Up,
+            Left => Right,
+            Right => Left,
+        }
+    }
+
+    pub fn reflection_v(&self) -> Self {
+        use Direction::*;
+        match *self {
+            LeftTop => RightTop,
+            LeftBottom => RightBottom,
+            RightTop => LeftTop,
+            RightBottom => LeftBottom,
+            Up => Down,
+            Down => Up,
+            Left => Right,
+            Right => Left,
+        }
+    }
+
+    pub fn reflection_reverse(&self) -> Self {
+        use Direction::*;
+        match *self {
+            LeftTop => RightBottom,
+            LeftBottom => RightTop,
+            RightTop => LeftBottom,
+            RightBottom => LeftTop,
+            Up => Down,
+            Down => Up,
+            Left => Right,
+            Right => Left,
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Position(u16, u16);
+impl From<Rect> for Position {
+    fn from(value: Rect) -> Self {
+        Self(value.x, value.y)
+    }
+}
+
+impl Position {
+    pub fn into_rect(self, width: u16, height: u16) -> Rect {
+        Rect {
+            height,
+            width,
+            x: self.0,
+            y: self.1,
+        }
+    }
+
+    pub fn mv(self, dir: Direction) -> Self {
+        use Direction::*;
+        let Position(x, y) = self;
+        match dir {
+            LeftTop => Self(x.saturating_sub(1), y.saturating_sub(1)),
+            LeftBottom => Self(x.saturating_sub(1), y.saturating_add(1)),
+            RightTop => Self(x.saturating_add(1), y.saturating_sub(1)),
+            RightBottom => Self(x.saturating_add(1), y.saturating_add(1)),
+            Up => Self(x, y.saturating_sub(1)),
+            Down => Self(x, y.saturating_add(1)),
+            Left => Self(x.saturating_sub(1), y),
+            Right => Self(x.saturating_add(1), y),
+        }
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
@@ -47,6 +138,7 @@ pub enum Mode {
     Snow,
     Meteor,
     Star,
+    PingPong,
 }
 
 impl Display for Mode {
@@ -56,6 +148,7 @@ impl Display for Mode {
             Mode::Snow => "snow",
             Mode::Meteor => "meteor",
             Mode::Star => "star",
+            Mode::PingPong => "pingpong",
         };
 
         s.fmt(f)
@@ -89,6 +182,7 @@ impl Mode {
 pub struct State<T> {
     pub rb: RenderBuffer,
     pub timer: Timer,
+    pub timer_state: TimerState,
     pub weather: T,
     frame: u8,
     rng: SmallRng,
@@ -102,18 +196,22 @@ impl<T: EachFrameImpl> State<T> {
             rng: SmallRng::from_entropy(),
             frame: 0,
             timer: Timer::default(),
+            timer_state: TimerState::new(size, Some(TimerRenderMode::default())),
             seed: 0,
             weather,
         }
     }
 
     pub fn on_resize(&mut self, columns: u16, rows: u16) {
-        self.rb = RenderBuffer::new(Rect {
+        let rect = Rect {
             x: 0,
             y: 0,
             height: rows,
             width: columns,
-        });
+        };
+
+        self.rb = RenderBuffer::new(rect);
+        self.timer_state = TimerState::new(rect, self.timer_state.mode);
     }
 
     pub fn tick_timer(&mut self) {
@@ -124,6 +222,7 @@ impl<T: EachFrameImpl> State<T> {
         self.frame = if self.frame > 240 { 0 } else { self.frame.saturating_add(1) };
         self.seed = self.rng.next_u64();
         self.weather.on_frame(&mut self.rb, self.seed, self.frame);
+        self.timer_state.on_frame(&mut self.rb, self.seed, self.frame);
     }
 }
 

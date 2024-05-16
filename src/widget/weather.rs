@@ -50,7 +50,7 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
                     TailMode::Right => '\\',
                     TailMode::Default => '|',
                 },
-                None => ' ',
+                _ => ' ',
             }
             _ => ' ',
         }

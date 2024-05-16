@@ -18,7 +18,6 @@ impl Weather {
             Rain | Snow => Self(Box::new(GeneralDropping::new(args))),
             Meteor => Self(Box::new(TailDropping::new(args))),
             Disable => Self(Box::new(EmptyWeather)),
-            _ => panic!("has not been implemented yet for this mode"),
         }
     }
 }

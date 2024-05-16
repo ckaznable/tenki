@@ -219,7 +219,7 @@ impl<T: EachFrameImpl> State<T> {
     }
 
     pub fn tick(&mut self) {
-        self.frame = if self.frame > 240 { 0 } else { self.frame.saturating_add(1) };
+        self.frame = if self.frame == u64::MAX { 0 } else { self.frame.saturating_add(1) };
         self.seed = self.rng.next_u64();
         self.weather.on_frame(&mut self.rb, self.seed, self.frame);
         self.timer_state.on_frame(&mut self.rb, self.seed, self.frame);

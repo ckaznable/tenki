@@ -38,7 +38,7 @@ where
 
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
-        let state = State::new(terminal.size()?, weather);
+        let state = State::new(terminal.size()?, weather, args);
 
         Ok(Self {
             terminal,

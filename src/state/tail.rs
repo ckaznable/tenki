@@ -105,7 +105,6 @@ impl TailState {
                     *cell = Self::append_tail(*cell)
                 }
             }
-
         });
     }
 }

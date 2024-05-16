@@ -159,7 +159,7 @@ impl<'a> Widget for Timer<'a> {
         Self::render_decimal(self.timer.minutes, minutes, self.color, buf);
         Self::render_decimal(self.timer.seconds, seconds, self.color , buf);
 
-        if self.state.show_colon {
+        if self.state.colon.show {
             Self::render_colon(colon_left, self.color, buf);
             Self::render_colon(colon_right, self.color, buf);
         }

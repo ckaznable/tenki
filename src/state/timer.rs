@@ -1,6 +1,7 @@
-use std::time::SystemTime;
+use std::{fmt::Display, time::SystemTime};
 
 use chrono::{DateTime, Local, Timelike};
+use clap::ValueEnum;
 use ratatui::layout::Rect;
 
 use crate::widget::timer::{TIMER_LAYOUT_HEIGHT, TIMER_LAYOUT_WIDTH};
@@ -32,13 +33,67 @@ impl Default for Timer {
     }
 }
 
+/// enum alias for parsed from cli
+#[derive(Copy, Clone, ValueEnum)]
+pub enum TimerMode {
+    Dvd,
+}
+
+impl Display for TimerMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match *self {
+            TimerMode::Dvd => "dvd",
+        };
+
+        s.fmt(f)
+    }
+}
+
 #[derive(Copy, Clone)]
 pub enum TimerRenderMode {
     Dvd(Direction),
 }
+
 impl Default for TimerRenderMode {
     fn default() -> Self {
         Self::Dvd(Direction::default())
+    }
+}
+
+impl From<TimerMode> for TimerRenderMode {
+    fn from(value: TimerMode) -> Self {
+        match value {
+            TimerMode::Dvd => Self::Dvd(Direction::default())
+        }
+    }
+}
+
+pub struct ColonState {
+    pub show: bool,
+    blink: bool,
+}
+
+impl Default for ColonState {
+    fn default() -> Self {
+        Self { show: true, blink: false }
+    }
+}
+
+impl ColonState {
+    pub fn enable_blink(&mut self) {
+        self.blink = true;
+    }
+
+    fn toggle(&mut self) {
+        self.show = !self.show;
+    }
+}
+
+impl EachFrameImpl for ColonState {
+    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
+        if self.blink && frame % 24 == 0 {
+            self.toggle()
+        }
     }
 }
 
@@ -47,7 +102,7 @@ pub struct TimerState {
     pub area: Rect,
     pub pos: Position,
     pub boundary: Rect,
-    pub show_colon: bool,
+    pub colon: ColonState,
 }
 
 impl TimerState {
@@ -60,7 +115,7 @@ impl TimerState {
             area,
             boundary,
             pos: area.into(),
-            show_colon: true,
+            colon: ColonState::default(),
         }
     }
 
@@ -126,17 +181,11 @@ impl TimerState {
 
         self.area = Self::get_area_with_pos(self.pos);
     }
-
-    fn handle_decimal(&mut self, frame: u64) {
-        if frame % 24 == 0 {
-            self.show_colon = !self.show_colon;
-        }
-    }
 }
 
 impl EachFrameImpl for TimerState {
-    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) {
         self.handle_mode(frame);
-        self.handle_decimal(frame);
+        self.colon.on_frame(rb, seed, frame);
     }
 }

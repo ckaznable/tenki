@@ -7,7 +7,7 @@ use tinyvec::ArrayVec;
 
 use self::{
     buffer::RenderBuffer,
-    timer::{Timer, TimerRenderMode, TimerState},
+    timer::{Timer, TimerState},
 };
 
 pub mod buffer;
@@ -137,8 +137,8 @@ pub enum Mode {
     Rain,
     Snow,
     Meteor,
-    Star,
-    PingPong,
+    // Star,
+    // PingPong,
     Disable,
 }
 
@@ -148,8 +148,8 @@ impl Display for Mode {
             Mode::Rain => "rain",
             Mode::Snow => "snow",
             Mode::Meteor => "meteor",
-            Mode::Star => "star",
-            Mode::PingPong => "pingpong",
+            // Mode::Star => "star",
+            // Mode::PingPong => "pingpong",
             Mode::Disable => "disable",
         };
 
@@ -192,13 +192,18 @@ pub struct State<T> {
 }
 
 impl<T: EachFrameImpl> State<T> {
-    pub fn new(size: Rect, weather: T) -> Self {
+    pub fn new(size: Rect, weather: T, args: crate::cli::Args) -> Self {
+        let mut timer_state = TimerState::new(size, args.timer_mode.map(|mode| mode.into()));
+        if args.blink_colon {
+            timer_state.colon.enable_blink();
+        }
+
         State {
             rb: RenderBuffer::new(size),
             rng: SmallRng::from_entropy(),
             frame: 0,
             timer: Timer::default(),
-            timer_state: TimerState::new(size, Some(TimerRenderMode::default())),
+            timer_state,
             seed: 0,
             weather,
         }

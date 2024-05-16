@@ -111,7 +111,7 @@ impl TimerState {
 }
 
 impl EachFrameImpl for TimerState {
-    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u8) {
+    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
         if self.mode.is_none() {
             return;
         }

@@ -22,7 +22,7 @@ impl Weather {
 }
 
 impl EachFrameImpl for Weather {
-    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u8) {
+    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u64) {
         self.0.on_frame(rb, seed, frame)
     }
 }

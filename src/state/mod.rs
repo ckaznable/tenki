@@ -20,7 +20,7 @@ pub type Cell = ArrayVec<[CellType; 3]>;
 pub type Column = Rc<RefCell<Vec<Cell>>>;
 
 pub trait EachFrameImpl {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u8);
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64);
 }
 
 #[derive(Copy, Clone, Default)]
@@ -156,7 +156,7 @@ impl Display for Mode {
 }
 
 impl Mode {
-    pub fn get_frame_by_speed(&self, s: CellType) -> u8 {
+    pub fn get_frame_by_speed(&self, s: CellType) -> u64 {
         use CellType::*;
         use Mode::*;
 
@@ -184,7 +184,7 @@ pub struct State<T> {
     pub timer: Timer,
     pub timer_state: TimerState,
     pub weather: T,
-    frame: u8,
+    frame: u64,
     rng: SmallRng,
     seed: u64,
 }

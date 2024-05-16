@@ -74,7 +74,7 @@ impl WindState {
 }
 
 impl EachFrameImpl for WindState {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, _: u8) {
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, _: u64) {
         self.direction = match self.mode {
             WindMode::Disable => WindDirection::None,
             WindMode::OnlyLeft => WindDirection::Left,

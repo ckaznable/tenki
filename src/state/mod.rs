@@ -139,6 +139,7 @@ pub enum Mode {
     Meteor,
     Star,
     PingPong,
+    Disable,
 }
 
 impl Display for Mode {
@@ -149,6 +150,7 @@ impl Display for Mode {
             Mode::Meteor => "meteor",
             Mode::Star => "star",
             Mode::PingPong => "pingpong",
+            Mode::Disable => "disable",
         };
 
         s.fmt(f)

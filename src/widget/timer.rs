@@ -156,10 +156,13 @@ impl<'a> Widget for Timer<'a> {
         .areas(self.state.area);
 
         Self::render_decimal(self.timer.hours, hours, self.color, buf);
-        Self::render_colon(colon_left, self.color, buf);
         Self::render_decimal(self.timer.minutes, minutes, self.color, buf);
-        Self::render_colon(colon_right, self.color, buf);
         Self::render_decimal(self.timer.seconds, seconds, self.color , buf);
+
+        if self.state.show_colon {
+            Self::render_colon(colon_left, self.color, buf);
+            Self::render_colon(colon_right, self.color, buf);
+        }
     }
 }
 

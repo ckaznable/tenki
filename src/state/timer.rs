@@ -47,6 +47,7 @@ pub struct TimerState {
     pub area: Rect,
     pub pos: Position,
     pub boundary: Rect,
+    pub show_colon: bool,
 }
 
 impl TimerState {
@@ -59,6 +60,7 @@ impl TimerState {
             area,
             boundary,
             pos: area.into(),
+            show_colon: true,
         }
     }
 
@@ -108,10 +110,8 @@ impl TimerState {
     fn is_collision_h(&self) -> bool {
         self.pos.1 == 0 || (self.pos.1 + TIMER_LAYOUT_HEIGHT) >= self.boundary.height
     }
-}
 
-impl EachFrameImpl for TimerState {
-    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
+    fn handle_mode(&mut self, frame: u64) {
         if self.mode.is_none() {
             return;
         }
@@ -125,5 +125,18 @@ impl EachFrameImpl for TimerState {
         }
 
         self.area = Self::get_area_with_pos(self.pos);
+    }
+
+    fn handle_decimal(&mut self, frame: u64) {
+        if frame % 24 == 0 {
+            self.show_colon = !self.show_colon;
+        }
+    }
+}
+
+impl EachFrameImpl for TimerState {
+    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
+        self.handle_mode(frame);
+        self.handle_decimal(frame);
     }
 }

@@ -11,6 +11,7 @@ pub enum GeneralWeatherWidget {
     Snow,
     Meteor(TailMode),
     Star,
+    Disable,
 }
 
 impl WeatherWidgetImpl for GeneralWeatherWidget {
@@ -50,13 +51,17 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
                     TailMode::Right => '\\',
                     TailMode::Default => '|',
                 },
-                None => ' ',
+                _ => ' ',
             }
             _ => ' ',
         }
     }
 
     fn get_render_cell_type(&self, cell: &Cell) -> CellType {
+        if *self == Self::Disable {
+            return CellType::None;
+        }
+
         match self {
             Self::Snow => if !cell.is_empty() && cell.contains(&CellType::Normal) {
                 CellType::Normal

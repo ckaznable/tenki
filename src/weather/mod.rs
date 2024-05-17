@@ -1,10 +1,11 @@
 use crate::{
     cli::Args,
     state::{EachFrameImpl, Mode},
-    weather::dropping::{GeneralDropping, TailDropping}, widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
+    weather::{dropping::{GeneralDropping, TailDropping}, empty::EmptyWeather}, widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
 };
 
 pub mod dropping;
+pub mod empty;
 
 pub trait WeatherImpl: EachFrameImpl + AsWeatherWidget<Weather=GeneralWeatherWidget> {}
 
@@ -16,13 +17,13 @@ impl Weather {
         match args.mode {
             Rain | Snow => Self(Box::new(GeneralDropping::new(args))),
             Meteor => Self(Box::new(TailDropping::new(args))),
-            _ => panic!("has not been implemented yet for this mode"),
+            Disable => Self(Box::new(EmptyWeather)),
         }
     }
 }
 
 impl EachFrameImpl for Weather {
-    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u8) {
+    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u64) {
         self.0.on_frame(rb, seed, frame)
     }
 }

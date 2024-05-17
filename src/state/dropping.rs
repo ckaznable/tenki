@@ -45,7 +45,7 @@ impl DroppingState {
             });
     }
 
-    fn drop(col: &mut Column, ticks: u8, mode: Mode) {
+    fn drop(col: &mut Column, frame: u64, mode: Mode) {
         let len = col.borrow().len();
 
         for col_index in 0..len {
@@ -57,7 +57,7 @@ impl DroppingState {
 
             'state: for i in 0..current.len() {
                 let state = match current.get(i) {
-                    Some(s) if ticks % mode.get_frame_by_speed(*s) == 0 => s,
+                    Some(s) if frame % mode.get_frame_by_speed(*s) == 0 => s,
                     _ => continue 'state
                 };
 
@@ -104,7 +104,7 @@ impl DroppingState {
 }
 
 impl EachFrameImpl for DroppingState {
-    fn on_frame(&mut self, rb: &mut super::buffer::RenderBuffer, seed: u64, frame: u8) {
+    fn on_frame(&mut self, rb: &mut super::buffer::RenderBuffer, seed: u64, frame: u64) {
         // each column
         for i in 0..rb.buf.len() {
             Self::clean_latest_drop(&mut rb.buf[i]);

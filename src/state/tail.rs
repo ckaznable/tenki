@@ -105,13 +105,12 @@ impl TailState {
                     *cell = Self::append_tail(*cell)
                 }
             }
-
         });
     }
 }
 
 impl EachFrameImpl for TailState {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, _seed: u64, _frame: u8) {
+    fn on_frame(&mut self, rb: &mut RenderBuffer, _seed: u64, _frame: u64) {
         match self.mode {
             TailMode::Left => Self::render_left_tail(&mut rb.buf),
             TailMode::Right => Self::render_right_tail(&mut rb.buf),

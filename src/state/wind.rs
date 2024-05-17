@@ -1,4 +1,4 @@
-use super::{buffer::RenderBuffer, EachFrameImpl};
+use super::{buffer::RenderBuffer, EachFrameImpl, ShouldRender};
 
 pub trait WindImpl {
     fn direction(&self) -> WindDirection;
@@ -74,7 +74,7 @@ impl WindState {
 }
 
 impl EachFrameImpl for WindState {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, _: u64) {
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, _: u64) -> ShouldRender {
         self.direction = match self.mode {
             WindMode::Disable => WindDirection::None,
             WindMode::OnlyLeft => WindDirection::Left,
@@ -83,7 +83,7 @@ impl EachFrameImpl for WindState {
         };
 
         if self.mode == WindMode::Disable {
-            return;
+            return ShouldRender::Skip;
         }
 
         if self.frame == 0 || self.direction == WindDirection::None {
@@ -98,7 +98,7 @@ impl EachFrameImpl for WindState {
         }
 
         if self.direction == WindDirection::None {
-            return;
+            return ShouldRender::Skip;
         }
 
         self.frame = self.frame.saturating_sub(1);
@@ -114,5 +114,7 @@ impl EachFrameImpl for WindState {
         if self.direction == WindDirection::Left {
             rb.buf.reverse();
         }
+
+        ShouldRender::Render
     }
 }

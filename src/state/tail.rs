@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::{buffer::RenderBuffer, wind::WindMode, Cell, Column, CellType, EachFrameImpl};
+use super::{buffer::RenderBuffer, wind::WindMode, Cell, CellType, Column, EachFrameImpl, ShouldRender};
 
 #[derive(Default, Copy, Clone, Eq, PartialEq)]
 pub enum TailMode {
@@ -110,11 +110,13 @@ impl TailState {
 }
 
 impl EachFrameImpl for TailState {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, _seed: u64, _frame: u64) {
+    fn on_frame(&mut self, rb: &mut RenderBuffer, _seed: u64, _frame: u64) -> ShouldRender {
         match self.mode {
             TailMode::Left => Self::render_left_tail(&mut rb.buf),
             TailMode::Right => Self::render_right_tail(&mut rb.buf),
             TailMode::Default => Self::render_default_tail(&mut rb.buf),
-        }
+        };
+
+        ShouldRender::Render
     }
 }

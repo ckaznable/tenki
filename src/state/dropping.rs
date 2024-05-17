@@ -1,4 +1,4 @@
-use super::{buffer::RenderBuffer, Cell, Column, CellType, Mode, EachFrameImpl};
+use super::{buffer::RenderBuffer, Cell, CellType, Column, EachFrameImpl, Mode, ShouldRender};
 
 pub struct DroppingState {
     pub threshold: u16,
@@ -104,7 +104,7 @@ impl DroppingState {
 }
 
 impl EachFrameImpl for DroppingState {
-    fn on_frame(&mut self, rb: &mut super::buffer::RenderBuffer, seed: u64, frame: u64) {
+    fn on_frame(&mut self, rb: &mut super::buffer::RenderBuffer, seed: u64, frame: u64) -> ShouldRender {
         // each column
         for i in 0..rb.buf.len() {
             Self::clean_latest_drop(&mut rb.buf[i]);
@@ -112,5 +112,6 @@ impl EachFrameImpl for DroppingState {
         }
 
         self.new_drop(rb, seed);
+        ShouldRender::Render
     }
 }

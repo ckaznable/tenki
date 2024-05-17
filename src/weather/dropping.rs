@@ -1,6 +1,6 @@
 use crate::{
     cli::Args,
-    state::{buffer::RenderBuffer, dropping::DroppingState, tail::TailState, wind::WindState, EachFrameImpl, Mode},
+    state::{buffer::RenderBuffer, dropping::DroppingState, tail::TailState, wind::WindState, EachFrameImpl, Mode, ShouldRender},
     widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
 };
 
@@ -29,9 +29,9 @@ impl GeneralDropping {
 impl WeatherImpl for GeneralDropping {}
 
 impl EachFrameImpl for GeneralDropping {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) {
-        self.wind.on_frame(rb, seed, frame);
-        self.dropping.on_frame(rb, seed, frame);
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) -> ShouldRender {
+        self.wind.on_frame(rb, seed, frame)
+            .or(self.dropping.on_frame(rb, seed, frame))
     }
 }
 
@@ -70,10 +70,10 @@ impl TailDropping {
 impl WeatherImpl for TailDropping {}
 
 impl EachFrameImpl for TailDropping {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) {
-        self.wind.on_frame(rb, seed, frame);
-        self.dropping.on_frame(rb, seed, frame);
-        self.tail.on_frame(rb, seed, frame);
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) -> ShouldRender {
+        self.wind.on_frame(rb, seed, frame)
+            .or(self.dropping.on_frame(rb, seed, frame))
+            .or(self.tail.on_frame(rb, seed, frame))
     }
 }
 

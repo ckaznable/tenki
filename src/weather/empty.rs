@@ -7,10 +7,6 @@ use super::WeatherImpl;
 
 pub struct EmptyWeather;
 
-impl EachFrameImpl for EmptyWeather {
-    fn on_frame(&mut self, _: &mut crate::state::buffer::RenderBuffer, _: u64, _: u64) {}
-}
-
 impl AsWeatherWidget for EmptyWeather {
     type Weather = GeneralWeatherWidget;
 
@@ -19,4 +15,5 @@ impl AsWeatherWidget for EmptyWeather {
     }
 }
 
+impl EachFrameImpl for EmptyWeather {}
 impl WeatherImpl for EmptyWeather {}

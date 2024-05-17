@@ -20,7 +20,28 @@ pub type Cell = ArrayVec<[CellType; 3]>;
 pub type Column = Rc<RefCell<Vec<Cell>>>;
 
 pub trait EachFrameImpl {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64);
+    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, _: u64) -> ShouldRender {
+        ShouldRender::Skip
+    }
+}
+
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub enum ShouldRender {
+    Render,
+    Skip,
+}
+
+impl ShouldRender {
+    pub fn or(self, sr: Self) -> Self {
+        match sr {
+            Self::Skip => self,
+            Self::Render => sr,
+        }
+    }
+
+    pub fn is_render(&self) -> bool {
+        *self == Self::Render
+    }
 }
 
 #[derive(Copy, Clone, Default)]
@@ -225,11 +246,12 @@ impl<T: EachFrameImpl> State<T> {
         self.timer = Timer::new();
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> ShouldRender {
         self.frame = if self.frame == u64::MAX { 0 } else { self.frame.saturating_add(1) };
         self.seed = self.rng.next_u64();
-        self.weather.on_frame(&mut self.rb, self.seed, self.frame);
-        self.timer_state.on_frame(&mut self.rb, self.seed, self.frame);
+
+        self.weather.on_frame(&mut self.rb, self.seed, self.frame)
+            .or(self.timer_state.on_frame(&mut self.rb, self.seed, self.frame))
     }
 }
 

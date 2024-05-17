@@ -6,7 +6,7 @@ use ratatui::layout::Rect;
 
 use crate::widget::timer::{TIMER_LAYOUT_HEIGHT, TIMER_LAYOUT_WIDTH};
 
-use super::{buffer::RenderBuffer, Direction, EachFrameImpl, Position};
+use super::{buffer::RenderBuffer, Direction, EachFrameImpl, Position, ShouldRender};
 
 #[derive(Copy, Clone)]
 pub struct Timer {
@@ -90,9 +90,12 @@ impl ColonState {
 }
 
 impl EachFrameImpl for ColonState {
-    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) {
+    fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) -> ShouldRender {
         if self.blink && frame % 24 == 0 {
-            self.toggle()
+            self.toggle();
+            ShouldRender::Render
+        } else {
+            ShouldRender::Skip
         }
     }
 }
@@ -166,13 +169,13 @@ impl TimerState {
         self.pos.1 == 0 || (self.pos.1 + TIMER_LAYOUT_HEIGHT) >= self.boundary.height
     }
 
-    fn handle_mode(&mut self, frame: u64) {
+    fn handle_mode(&mut self, frame: u64) -> ShouldRender {
         if self.mode.is_none() {
-            return;
+            return ShouldRender::Skip;
         }
 
         if frame % 8 > 0 {
-            return;
+            return ShouldRender::Skip;
         }
 
         match self.mode.unwrap() {
@@ -180,12 +183,13 @@ impl TimerState {
         }
 
         self.area = Self::get_area_with_pos(self.pos);
+        ShouldRender::Render
     }
 }
 
 impl EachFrameImpl for TimerState {
-    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) {
-        self.handle_mode(frame);
-        self.colon.on_frame(rb, seed, frame);
+    fn on_frame(&mut self, rb: &mut RenderBuffer, seed: u64, frame: u64) -> ShouldRender {
+        self.handle_mode(frame)
+            .or(self.colon.on_frame(rb, seed, frame))
     }
 }

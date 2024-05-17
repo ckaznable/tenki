@@ -1,6 +1,6 @@
 use crate::{
     cli::Args,
-    state::{EachFrameImpl, Mode},
+    state::{EachFrameImpl, Mode, ShouldRender},
     weather::{dropping::{GeneralDropping, TailDropping}, empty::EmptyWeather}, widget::{weather::GeneralWeatherWidget, AsWeatherWidget},
 };
 
@@ -23,7 +23,7 @@ impl Weather {
 }
 
 impl EachFrameImpl for Weather {
-    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u64) {
+    fn on_frame(&mut self, rb: &mut crate::state::buffer::RenderBuffer, seed: u64, frame: u64) -> ShouldRender {
         self.0.on_frame(rb, seed, frame)
     }
 }

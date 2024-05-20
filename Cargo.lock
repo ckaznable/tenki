@@ -863,7 +863,6 @@ dependencies = [
  "clap-num",
  "crossterm",
  "futures",
- "itertools",
  "rand",
  "ratatui",
  "serde",

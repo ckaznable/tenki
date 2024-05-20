@@ -127,19 +127,12 @@ impl TimerState {
             return;
         };
 
-        let is_collision_h = self.is_collision_h();
-        let is_collision_v = self.is_collision_v();
-
-        let dir =
-            if is_collision_h && is_collision_v {
-                dir.reflection_reverse()
-            } else if is_collision_h {
-                dir.reflection_h()
-            } else if is_collision_v {
-                dir.reflection_v()
-            } else {
-                dir
-            };
+        let dir = match (self.is_collision_h(), self.is_collision_v()) {
+            (true, true) => dir.reflection_reverse(),
+            (true, false) => dir.reflection_h(),
+            (false, true) => dir.reflection_v(),
+            _ => dir
+        };
 
         self.pos = self.pos.mv(dir);
         self.mode = Some(TimerRenderMode::Dvd(dir));

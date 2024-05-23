@@ -1,6 +1,6 @@
-# Tenki
+# Tenki(天気)
 
-tty-clock with weather effect written by Rust and powerd by [ratatui](https://github.com/ratatui-org/ratatui)
+tty-clock with weather effect written by Rust and powerd by [ratatui](https://github.com/ratatui-org/ratatui) and tenki means weather in japanese
 
 ![demo](./doc/demo.gif)
 

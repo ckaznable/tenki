@@ -57,7 +57,7 @@ impl DroppingState {
 
             'state: for i in 0..current.len() {
                 let state = match current.get(i) {
-                    Some(s) if frame % mode.get_frame_by_speed(*s) == 0 => s,
+                    Some(s) if frame % mode.get_frame_by_cell(*s) == 0 => s,
                     _ => continue 'state
                 };
 

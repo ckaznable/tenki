@@ -183,7 +183,7 @@ impl Display for Mode {
 }
 
 impl Mode {
-    pub fn get_frame_by_speed(&self, s: CellType) -> u64 {
+    pub fn get_frame_by_cell(&self, s: CellType) -> u64 {
         use CellType::*;
         use Mode::*;
 

@@ -122,16 +122,20 @@ impl Position {
     pub fn mv(self, dir: Direction) -> Self {
         use Direction::*;
         let Position(x, y) = self;
-        match dir {
-            LeftTop => Self(x.saturating_sub(1), y.saturating_sub(1)),
-            LeftBottom => Self(x.saturating_sub(1), y.saturating_add(1)),
-            RightTop => Self(x.saturating_add(1), y.saturating_sub(1)),
-            RightBottom => Self(x.saturating_add(1), y.saturating_add(1)),
-            Up => Self(x, y.saturating_sub(1)),
-            Down => Self(x, y.saturating_add(1)),
-            Left => Self(x.saturating_sub(1), y),
-            Right => Self(x.saturating_add(1), y),
-        }
+
+        let x = match dir {
+            LeftTop | LeftBottom | Left => x.saturating_sub(1),
+            RightTop | RightBottom | Right => x.saturating_add(1),
+            _ => x,
+        };
+
+        let y = match dir {
+            LeftTop | RightTop | Up => y.saturating_add(1),
+            LeftBottom | RightBottom | Down => y.saturating_sub(1),
+            _ => y,
+        };
+
+        Self(x, y)
     }
 }
 

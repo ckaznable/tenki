@@ -1,4 +1,12 @@
-use super::{buffer::RenderBuffer, Cell, CellType, Column, EachFrameImpl, Mode, ShouldRender};
+use super::{
+    buffer::RenderBuffer,
+    CellKind,
+    CellKindCollect,
+    Column,
+    EachFrameImpl,
+    Mode,
+    ShouldRender
+};
 
 pub struct DroppingState {
     pub threshold: u16,
@@ -20,7 +28,7 @@ impl DroppingState {
                 rb.line.push(if seed & (1 << i) != 0 {
                     Self::get_drop_speed(seed.saturating_sub(i), self.threshold)
                 } else {
-                    CellType::None
+                    CellKind::None
                 });
             }
         }
@@ -40,7 +48,7 @@ impl DroppingState {
                     .unwrap()
                     .get_mut(0) {
 
-                    *cell = Self::merge_drop_state(*cell, *d)
+                    cell.kind_collect = Self::merge_drop_state(cell.kind_collect, *d)
                 };
             });
     }
@@ -51,7 +59,7 @@ impl DroppingState {
         for col_index in 0..len {
             let next_index = len.saturating_sub(col_index.saturating_add(1));
             let current_index = len.saturating_sub(col_index.saturating_add(2));
-            let current = { col.borrow().get(current_index).cloned() };
+            let current = { col.borrow().get(current_index).map(|c| c.kind_collect) };
             let Some(current) = current else { continue; };
             let mut column = col.try_borrow_mut().unwrap();
 
@@ -61,8 +69,8 @@ impl DroppingState {
                     _ => continue 'state
                 };
 
-                column[current_index] = Self::remove_drop_state(column[current_index], *state);
-                column[next_index] = Self::merge_drop_state(column[next_index], *state);
+                column[current_index].kind_collect = Self::remove_drop_state(column[current_index].kind_collect, *state);
+                column[next_index].kind_collect = Self::merge_drop_state(column[next_index].kind_collect, *state);
             }
         }
     }
@@ -73,14 +81,14 @@ impl DroppingState {
         if len > 0 {
             let mut col = col.try_borrow_mut().unwrap();
             if let Some(c) = col.get_mut(len - 1) {
-                c.clear()
+                c.kind_collect.clear()
             };
         }
     }
 
     #[inline]
-    fn merge_drop_state(mut cell: Cell, state: CellType) -> Cell {
-        if !cell.contains(&state) && state != CellType::None {
+    fn merge_drop_state(mut cell: CellKindCollect, state: CellKind) -> CellKindCollect {
+        if !cell.contains(&state) && state != CellKind::None {
             let _ = cell.try_push(state);
         };
 
@@ -88,17 +96,17 @@ impl DroppingState {
     }
 
     #[inline]
-    fn remove_drop_state(cell: Cell, state: CellType) -> Cell {
+    fn remove_drop_state(cell: CellKindCollect, state: CellKind) -> CellKindCollect {
         cell.into_iter().filter(|c| *c != state).collect()
     }
 
     #[inline]
-    fn get_drop_speed(num: u64, threshold: u16) -> CellType {
+    fn get_drop_speed(num: u64, threshold: u16) -> CellKind {
         match num % threshold as u64 {
-            0 => CellType::Normal,
-            1 => CellType::Fast,
-            2 => CellType::Slow,
-            _ => CellType::None,
+            0 => CellKind::Normal,
+            1 => CellKind::Fast,
+            2 => CellKind::Slow,
+            _ => CellKind::None,
         }
     }
 }

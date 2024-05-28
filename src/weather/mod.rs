@@ -17,7 +17,7 @@ impl Weather {
         match args.mode {
             Rain | Snow => Self(Box::new(GeneralDropping::new(args))),
             Meteor => Self(Box::new(TailDropping::new(args))),
-            Disable => Self(Box::new(EmptyWeather)),
+            _ => Self(Box::new(EmptyWeather)),
         }
     }
 }

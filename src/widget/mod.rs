@@ -5,16 +5,16 @@ use ratatui::{
     widgets::StatefulWidget,
 };
 
-use crate::state::{buffer::RenderBuffer, Cell, CellType};
+use crate::state::{buffer::RenderBuffer, Cell, CellKind};
 
 pub mod fps;
 pub mod timer;
 pub mod weather;
 
 pub trait WeatherWidgetImpl {
-    fn get_char(&self, _: CellType) -> char;
-    fn get_render_cell_type(&self, cell: &Cell) -> CellType;
-    fn get_color(&self, cell: CellType) -> Color;
+    fn get_char(&self, _: CellKind) -> char;
+    fn get_render_cell_type(&self, cell: &Cell) -> CellKind;
+    fn get_color(&self, cell: CellKind) -> Color;
 
     fn render_background(&self, area: Rect, buf: &mut Buffer, rb: &RenderBuffer) {
         for x in area.left()..area.right() {

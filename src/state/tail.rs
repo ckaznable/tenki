@@ -1,6 +1,14 @@
 use std::cell::RefCell;
 
-use super::{buffer::RenderBuffer, wind::WindMode, Cell, CellType, Column, EachFrameImpl, ShouldRender};
+use super::{
+    buffer::RenderBuffer,
+    wind::WindMode,
+    CellKind,
+    CellKindCollect,
+    Column,
+    EachFrameImpl,
+    ShouldRender
+};
 
 #[derive(Default, Copy, Clone, Eq, PartialEq)]
 pub enum TailMode {
@@ -31,13 +39,13 @@ impl TailState {
         Self { mode } 
     }
 
-    fn remove_tail_from_cell(cell: Cell) -> Cell {
-        cell.into_iter().filter(|t| *t != CellType::Tail).collect()
+    fn remove_tail_from_cell(cell: CellKindCollect) -> CellKindCollect {
+        cell.into_iter().filter(|t| *t != CellKind::Tail).collect()
     }
 
-    fn append_tail(mut cell: Cell) -> Cell {
-        if !cell.contains(&CellType::Tail) {
-            cell.push(CellType::Tail);
+    fn append_tail(mut cell: CellKindCollect) -> CellKindCollect {
+        if !cell.contains(&CellKind::Tail) {
+            cell.push(CellKind::Tail);
         }
 
         cell
@@ -48,19 +56,19 @@ impl TailState {
             let mut col = RefCell::borrow_mut(col);
             for i in 0..col.len() {
                 if let Some(cell) = col.get_mut(i) {
-                    *cell = Self::remove_tail_from_cell(*cell);
+                    cell.kind_collect = Self::remove_tail_from_cell(cell.kind_collect);
 
                     if i == 0 {
                         continue;
                     }
 
-                    if !cell.iter().any(|t| t.is_dropping_cell()) {
+                    if !cell.kind_collect.iter().any(|t| t.is_dropping_cell()) {
                         continue;
                     }
 
                     for j in i.saturating_sub(TAIL_LEN + 1)..(i - 1) {
                         let cell = col.get_mut(j).unwrap();
-                        *cell = Self::append_tail(*cell)
+                        cell.kind_collect = Self::append_tail(cell.kind_collect)
                     }
                 };
             }
@@ -80,13 +88,13 @@ impl TailState {
             let mut col = RefCell::borrow_mut(cols.get(x).unwrap());
             for y in 0..col.len() {
                 if let Some(cell) = col.get_mut(y) {
-                    *cell = Self::remove_tail_from_cell(*cell);
+                    cell.kind_collect = Self::remove_tail_from_cell(cell.kind_collect);
 
                     if y == 0 {
                         continue;
                     }
 
-                    if !cell.iter().any(|t| t.is_dropping_cell()) {
+                    if !cell.kind_collect.iter().any(|t| t.is_dropping_cell()) {
                         continue;
                     }
 
@@ -102,7 +110,7 @@ impl TailState {
             if let Some(col) = cols.get(x) {
                 let mut col = RefCell::borrow_mut(col);
                 if let Some(cell) = col.get_mut(y) {
-                    *cell = Self::append_tail(*cell)
+                    cell.kind_collect = Self::append_tail(cell.kind_collect)
                 }
             }
         });

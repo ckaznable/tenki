@@ -1,6 +1,6 @@
 use ratatui::style::Color;
 
-use crate::state::{tail::TailMode, wind::WindDirection, Cell, CellType};
+use crate::state::{tail::TailMode, wind::WindDirection, Cell, CellKind};
 
 use super::WeatherWidgetImpl;
 
@@ -15,8 +15,8 @@ pub enum GeneralWeatherWidget {
 }
 
 impl WeatherWidgetImpl for GeneralWeatherWidget {
-    fn get_color(&self, cell: CellType) -> Color {
-        use CellType::*;
+    fn get_color(&self, cell: CellKind) -> Color {
+        use CellKind::*;
         match self {
             Self::Rain(_) => Color::Rgb(150, 150, 150),
             Self::Meteor(_) => match cell {
@@ -27,8 +27,8 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
         }
     }
 
-    fn get_char(&self, d: CellType) -> char {
-        use CellType::*;
+    fn get_char(&self, d: CellKind) -> char {
+        use CellKind::*;
         match self {
             Self::Rain(wind) => match d {
                 Fast => '.',
@@ -41,7 +41,7 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
                 _ => ' ',
             }
             Self::Snow => match d {
-                CellType::Normal => '●',
+                CellKind::Normal => '●',
                 _ => ' ',
             }
             Self::Meteor(tail) => match d {
@@ -57,24 +57,25 @@ impl WeatherWidgetImpl for GeneralWeatherWidget {
         }
     }
 
-    fn get_render_cell_type(&self, cell: &Cell) -> CellType {
+    fn get_render_cell_type(&self, cell: &Cell) -> CellKind {
         if *self == Self::Disable {
-            return CellType::None;
+            return CellKind::None;
         }
 
+        let cell = cell.kind_collect;
         match self {
-            Self::Snow => if !cell.is_empty() && cell.contains(&CellType::Normal) {
-                CellType::Normal
+            Self::Snow => if !cell.is_empty() && cell.contains(&CellKind::Normal) {
+                CellKind::Normal
             } else {
-                CellType::None
+                CellKind::None
             },
 
-            _ => if cell.contains(&CellType::Slow) {
-                CellType::Slow
+            _ => if cell.contains(&CellKind::Slow) {
+                CellKind::Slow
             } else if !cell.is_empty() {
                 *cell.first().unwrap()
             } else {
-                CellType::None
+                CellKind::None
             },
         }
     }

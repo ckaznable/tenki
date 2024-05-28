@@ -2,7 +2,7 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use clap::ValueEnum;
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
-use ratatui::layout::Rect;
+use ratatui::{layout::Rect, style::Color};
 use tinyvec::ArrayVec;
 
 use self::{
@@ -14,10 +14,18 @@ pub mod buffer;
 pub mod dropping;
 pub mod tail;
 pub mod timer;
+pub mod pingpong;
 pub mod wind;
 
-pub type Cell = ArrayVec<[CellType; 3]>;
+pub type CellKindCollect = ArrayVec<[CellKind; 3]>;
 pub type Column = Rc<RefCell<Vec<Cell>>>;
+
+#[derive(Default)]
+pub struct Cell {
+    pub kind_collect: CellKindCollect,
+    pub background: Color,
+}
+
 
 pub trait EachFrameImpl {
     fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, _: u64) -> ShouldRender {
@@ -140,7 +148,7 @@ impl Position {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
-pub enum CellType {
+pub enum CellKind {
     Fast,
     Normal,
     Slow,
@@ -149,9 +157,9 @@ pub enum CellType {
     None,
 }
 
-impl CellType {
+impl CellKind {
     pub fn is_dropping_cell(&self) -> bool {
-        use CellType::*;
+        use CellKind::*;
         matches!(*self, Fast | Normal | Slow)
     }
 }
@@ -163,7 +171,7 @@ pub enum Mode {
     Snow,
     Meteor,
     // Star,
-    // PingPong,
+    PingPong,
     Disable,
 }
 
@@ -174,7 +182,7 @@ impl Display for Mode {
             Mode::Snow => "snow",
             Mode::Meteor => "meteor",
             // Mode::Star => "star",
-            // Mode::PingPong => "pingpong",
+            Mode::PingPong => "pingpong",
             Mode::Disable => "disable",
         };
 
@@ -183,8 +191,8 @@ impl Display for Mode {
 }
 
 impl Mode {
-    pub fn get_frame_by_cell(&self, s: CellType) -> u64 {
-        use CellType::*;
+    pub fn get_frame_by_cell(&self, s: CellKind) -> u64 {
+        use CellKind::*;
         use Mode::*;
 
         match self {

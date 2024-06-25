@@ -6,6 +6,9 @@ tty-clock with weather effect written by Rust and powerd by [ratatui](https://gi
 
 ## Installation
 
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/tenki.svg)](https://repology.org/project/tenki/versions)
+
 ### Install from Cargo
 
 ```

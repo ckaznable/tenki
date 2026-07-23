@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use ratatui::layout::Rect;
+use ratatui::layout::Size;
 use tinyvec::ArrayVec;
 
 use super::Column;
@@ -13,7 +13,7 @@ pub struct RenderBuffer {
 }
 
 impl RenderBuffer {
-    pub fn new(size: Rect) -> Self {
+    pub fn new(size: Size) -> Self {
         let mut buf = Vec::with_capacity(size.width as usize);
         for _ in 0..size.width {
             let mut column = Vec::with_capacity(size.height as usize);

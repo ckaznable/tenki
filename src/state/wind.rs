@@ -78,9 +78,9 @@ impl EachFrameImpl for WindState {
 
         if self.frame == 0 || self.direction == WindDirection::None {
             self.frame = 255;
-            self.direction = if seed % 2024 == 0 {
+            self.direction = if seed.is_multiple_of(2024) {
                 WindDirection::Left
-            } else if seed % 123 == 0 {
+            } else if seed.is_multiple_of(123) {
                 WindDirection::Right
             } else {
                 WindDirection::None

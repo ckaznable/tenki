@@ -101,8 +101,8 @@ impl<'a> Timer<'a> {
         let left = area.left();
         let top = area.top();
 
-        buf.get_mut(left + 1, top + 1).set_char(COLON_CHAR).set_fg(color);
-        buf.get_mut(left + 1, top + 3).set_char(COLON_CHAR).set_fg(color);
+        buf[(left + 1, top + 1)].set_char(COLON_CHAR).set_fg(color);
+        buf[(left + 1, top + 3)].set_char(COLON_CHAR).set_fg(color);
     }
 
     fn render_decimal(d: u8, area: Rect, color: Color, buf: &mut Buffer) {
@@ -138,7 +138,7 @@ impl<'a> Timer<'a> {
                     .enumerate()
                     .for_each(|(x, c)| {
                         if *c > 0 {
-                            buf.get_mut(left + x as u16, top + y as u16)
+                            buf[(left + x as u16, top + y as u16)]
                                .set_char(TIMER_CHAR)
                                .set_fg(color);
                         }

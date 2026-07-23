@@ -8,7 +8,7 @@ use crate::widget::{AsWeatherWidget, WeatherWidget};
 use crate::widget::timer::Timer;
 
 pub fn ui<T: EachFrameImpl + AsWeatherWidget>(f: &mut Frame, state: &mut State<T>, args: Args, runtime_info: AppRuntimeInfo) {
-    let area = f.size();
+    let area = f.area();
 
     f.render_stateful_widget(WeatherWidget::new(state.weather.as_weather_widget()), area, &mut state.rb);
     f.render_widget(Timer {

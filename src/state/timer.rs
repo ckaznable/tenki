@@ -2,7 +2,7 @@ use std::{fmt::Display, time::SystemTime};
 
 use chrono::{DateTime, Local, Timelike};
 use clap::ValueEnum;
-use ratatui::layout::Rect;
+use ratatui::layout::{Rect, Size};
 
 use crate::widget::timer::{TIMER_LAYOUT_HEIGHT, TIMER_LAYOUT_WIDTH};
 
@@ -63,7 +63,7 @@ impl Default for TimerRenderMode {
 impl From<TimerMode> for TimerRenderMode {
     fn from(value: TimerMode) -> Self {
         match value {
-            TimerMode::Dvd => Self::Dvd(Direction::default())
+            TimerMode::Dvd => Self::Dvd(Direction::default()),
         }
     }
 }
@@ -75,7 +75,10 @@ pub struct ColonState {
 
 impl Default for ColonState {
     fn default() -> Self {
-        Self { show: true, blink: false }
+        Self {
+            show: true,
+            blink: false,
+        }
     }
 }
 
@@ -91,7 +94,7 @@ impl ColonState {
 
 impl EachFrameImpl for ColonState {
     fn on_frame(&mut self, _: &mut RenderBuffer, _: u64, frame: u64) -> ShouldRender {
-        if self.blink && frame % 24 == 0 {
+        if self.blink && frame.is_multiple_of(24) {
             self.toggle();
             ShouldRender::Render
         } else {
@@ -104,12 +107,12 @@ pub struct TimerState {
     pub mode: Option<TimerRenderMode>,
     pub area: Rect,
     pub pos: Position,
-    pub boundary: Rect,
+    pub boundary: Size,
     pub colon: ColonState,
 }
 
 impl TimerState {
-    pub fn new(area: Rect, mode: Option<TimerRenderMode>) -> Self {
+    pub fn new(area: Size, mode: Option<TimerRenderMode>) -> Self {
         let boundary = area;
         let area = Self::get_center_area(area);
 
@@ -130,22 +133,21 @@ impl TimerState {
         let is_collision_h = self.is_collision_h();
         let is_collision_v = self.is_collision_v();
 
-        let dir =
-            if is_collision_h && is_collision_v {
-                dir.reflection_reverse()
-            } else if is_collision_h {
-                dir.reflection_h()
-            } else if is_collision_v {
-                dir.reflection_v()
-            } else {
-                dir
-            };
+        let dir = if is_collision_h && is_collision_v {
+            dir.reflection_reverse()
+        } else if is_collision_h {
+            dir.reflection_h()
+        } else if is_collision_v {
+            dir.reflection_v()
+        } else {
+            dir
+        };
 
         self.pos = self.pos.mv(dir);
         self.mode = Some(TimerRenderMode::Dvd(dir));
     }
 
-    fn get_center_area(area: Rect) -> Rect {
+    fn get_center_area(area: Size) -> Rect {
         let padding_h = (area.width.saturating_sub(TIMER_LAYOUT_WIDTH)) / 2;
         let padding_v = (area.height.saturating_sub(TIMER_LAYOUT_HEIGHT)) / 2;
 
@@ -174,7 +176,7 @@ impl TimerState {
             return ShouldRender::Skip;
         }
 
-        if frame % 8 > 0 {
+        if frame.is_multiple_of(8) {
             return ShouldRender::Skip;
         }
 

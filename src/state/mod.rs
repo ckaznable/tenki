@@ -2,7 +2,7 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use clap::ValueEnum;
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
-use ratatui::layout::Rect;
+use ratatui::layout::{Rect, Size};
 use tinyvec::ArrayVec;
 
 use self::{
@@ -213,7 +213,7 @@ pub struct State<T> {
 }
 
 impl<T: EachFrameImpl> State<T> {
-    pub fn new(size: Rect, weather: T, args: crate::cli::Args) -> Self {
+    pub fn new(size: Size, weather: T, args: crate::cli::Args) -> Self {
         let mut timer_state = TimerState::new(size, args.timer_mode.map(|mode| mode.into()));
         if args.blink_colon {
             timer_state.colon.enable_blink();
@@ -231,9 +231,7 @@ impl<T: EachFrameImpl> State<T> {
     }
 
     pub fn on_resize(&mut self, columns: u16, rows: u16) {
-        let rect = Rect {
-            x: 0,
-            y: 0,
+        let rect = Size {
             height: rows,
             width: columns,
         };

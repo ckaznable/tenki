@@ -26,7 +26,7 @@ pub trait WeatherWidgetImpl {
             for y in area.top()..area.bottom() {
                 if let Some(cell) = column.get(y as usize) {
                     let cell_type = self.get_render_cell_type(cell);
-                    buf.get_mut(x, y)
+                    buf[(x, y)]
                         .set_char(self.get_char(cell_type))
                         .set_fg(self.get_color(cell_type));
                 }

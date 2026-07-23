@@ -92,13 +92,14 @@ where
 
     fn on_tick(&mut self) {
         self.should_render = self.should_render.or(self.state.tick());
-        self.frame_in_second = self.frame_in_second.saturating_add(1);
     }
 
     fn on_render(&mut self) -> anyhow::Result<()> {
         if self.args.fps == self.args.tps {
             self.on_tick()
         }
+
+        self.frame_in_second = self.frame_in_second.saturating_add(1);
 
         if self.should_render.is_render() {
             self.should_render = ShouldRender::Skip;
